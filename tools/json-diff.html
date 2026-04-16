@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Free online JSON diff tool. Compare two JSON documents and highlight added, removed and changed values. 100% client-side — your data never leaves your browser.">
+    <meta name="author" content="TestLeft.co.uk">
+    <title>JSON Diff Tool — TestLeft.co.uk | Compare JSON Documents</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --bg: #f0f1f2;
+          --white: #ffffff;
+          --surface2: #f7f8f9;
+          --border: #e2e4e8;
+          --teal: #00b4b4;
+          --teal-dark: #008f8f;
+          --teal-light: #e6f7f7;
+          --navy: #1a2a3a;
+          --text: #1a2a3a;
+          --text-muted: #6b7280;
+          --text-light: #9ca3af;
+          --success: #059669;
+          --success-bg: #ecfdf5;
+          --error: #dc2626;
+          --error-bg: #fef2f2;
+          --added: #f0fdf4;
+          --added-border: #16a34a;
+          --added-text: #15803d;
+          --removed: #fef2f2;
+          --removed-border: #dc2626;
+          --removed-text: #b91c1c;
+          --changed: #fffbeb;
+          --changed-border: #d97706;
+          --changed-text: #92400e;
+          --font: 'Inter', sans-serif;
+          --font-mono: 'JetBrains Mono', monospace;
+          --radius: 12px;
+          --radius-sm: 8px;
+          --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+        .page-header { background: var(--white); border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        .site-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); }
+        .site-logo { font-family: var(--font); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: -0.03em; }
+        .logo-tl { color: var(--navy); }
+        .logo-left { color: var(--teal); }
+        .logo-dot { color: var(--text-muted); font-weight: 500; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+        .nav-link:hover { color: var(--teal); }
+        .page-header-inner { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .breadcrumb a { color: var(--teal); text-decoration: none; font-weight: 500; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb-sep { color: var(--text-light); }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+        .page-title span { color: var(--teal); }
+        .page-subtitle { margin-top: 6px; font-size: 14px; color: var(--text-muted); }
+        .security-notice { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--teal-light); border: 1px solid rgba(0,180,180,0.25); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--teal-dark); position: relative; }
+        .info-btn { background: none; border: none; cursor: pointer; color: var(--teal-dark); display: inline-flex; align-items: center; padding: 0 2px; opacity: 0.7; transition: opacity 0.15s; }
+        .info-btn:hover { opacity: 1; }
+        .security-popup { display: none; position: fixed; width: 380px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 9999; overflow: hidden; }
+        .security-popup.open { display: block; }
+        .security-popup-header { background: var(--navy); padding: 12px 16px; display: flex; align-items: center; gap: 8px; color: white; font-size: 12px; font-weight: 600; }
+        .security-popup-header svg { opacity: 0.7; flex-shrink: 0; }
+        .security-popup-header span { flex: 1; }
+        .popup-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; transition: color 0.15s; }
+        .popup-close:hover { color: white; }
+        .security-popup-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+        .security-item { display: flex; gap: 10px; align-items: flex-start; }
+        .security-item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+        .security-item-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+        .security-item-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+        .popup-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--teal-dark); margin: 6px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+        .tool-footer { margin-top: 32px; padding: 20px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .footer-sep { color: var(--text-light); }
+        .footer-note { font-size: 12px; color: var(--text-light); }
+
+        .wrapper { max-width: 1200px; margin: 0 auto; padding: 0 32px 48px; }
+
+        .controls-bar { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; border: 1px solid var(--border); border-bottom: none; padding: 12px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .controls-divider { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+        .btn { font-family: var(--font); font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; line-height: 1; }
+        .btn-primary { background: var(--teal); color: white; border-color: var(--teal); }
+        .btn-primary:hover { background: var(--teal-dark); border-color: var(--teal-dark); box-shadow: 0 2px 8px rgba(0,180,180,0.3); }
+        .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+        .btn-outline:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+        .btn-ghost { background: transparent; color: var(--text-muted); border-color: transparent; }
+        .btn-ghost:hover { color: var(--error); background: var(--error-bg); }
+        .sample-btn { font-size: 12px; font-weight: 600; color: var(--teal); background: none; border: none; cursor: pointer; font-family: var(--font); padding: 0 4px; }
+        .sample-btn:hover { text-decoration: underline; }
+
+        .view-toggle-group { margin-left: auto; display: flex; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+        .view-toggle-group .vbtn { font-family: var(--font); font-size: 11px; font-weight: 600; padding: 6px 12px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+        .view-toggle-group .vbtn:not(:last-child) { border-right: 1px solid var(--border); }
+        .view-toggle-group .vbtn.active { background: var(--white); color: var(--teal-dark); }
+        .view-toggle-group .vbtn:hover:not(.active) { background: var(--teal-light); color: var(--teal); }
+
+        .card { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+
+        /* Input section — navy header like path explorer in original */
+        .section-header { background: var(--navy); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); }
+        .section-sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+        .input-pane { display: flex; flex-direction: column; }
+        .input-pane:first-child { border-right: 1px solid var(--border); }
+        .pane-label { padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; }
+        .pane-label-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .pane-label-text.a { color: var(--removed-text); }
+        .pane-label-text.b { color: var(--added-text); }
+        .pane-actions { display: flex; gap: 5px; }
+        .pane-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--white); border: 1.5px solid var(--border); border-radius: 5px; padding: 3px 9px; cursor: pointer; transition: all 0.15s; }
+        .pane-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .pane-editor { position: relative; min-height: 240px; }
+        .pane-textarea { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--white); border: none; padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.65; color: var(--text); resize: none; outline: none; caret-color: var(--teal); }
+        .pane-textarea::placeholder { color: var(--text-light); }
+        .pane-textarea.has-error { background: var(--error-bg); }
+        .pane-error { border-top: 1px solid rgba(220,38,38,0.15); background: var(--error-bg); padding: 5px 16px; font-size: 11px; font-family: var(--font-mono); color: var(--error); min-height: 22px; line-height: 1.4; display: none; }
+        .pane-error.visible { display: block; }
+
+        /* Card header — same pattern as original card-header */
+        .card-header { padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; min-height: 42px; }
+        .card-header-left { display: flex; align-items: center; gap: 0; }
+        .card-actions { display: flex; gap: 6px; align-items: center; }
+        .icon-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--white); border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+        .icon-btn:hover { border-color: var(--teal); color: var(--teal); }
+        .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); transition: all 0.2s; }
+        .status-pill.valid { background: var(--success-bg); color: var(--success); border-color: rgba(5,150,105,0.2); }
+        .status-pill.invalid { background: var(--error-bg); color: var(--error); border-color: rgba(220,38,38,0.2); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+        .status-msg { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-left: 6px; }
+
+        /* Stats bar — same as original */
+        .stats-bar { padding: 9px 16px; border-bottom: 1px solid var(--border); display: none; gap: 16px; flex-wrap: wrap; background: var(--surface2); align-items: center; }
+        .stats-bar.visible { display: flex; }
+        .stat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .stat-val { font-weight: 700; font-family: var(--font-mono); }
+        .stat-added { color: var(--added-text); }
+        .stat-removed { color: var(--removed-text); }
+        .stat-changed { color: var(--changed-text); }
+        .stat-unchanged { color: var(--teal-dark); }
+
+        /* Tree view */
+        .tree-view { padding: 8px 0; }
+        .tree-node { border-left: 2px solid transparent; }
+        .tn-added { border-left-color: var(--added-border); background: var(--added); }
+        .tn-removed { border-left-color: var(--removed-border); background: var(--removed); }
+        .tn-changed { border-left-color: var(--changed-border); background: var(--changed); }
+        .tree-row { display: flex; align-items: center; padding: 3px 14px; cursor: pointer; font-family: var(--font-mono); font-size: 12.5px; min-height: 26px; transition: filter 0.1s; }
+        .tree-row:hover { filter: brightness(0.97); }
+        .tree-toggle { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; color: var(--teal); flex-shrink: 0; font-size: 10px; transition: transform 0.15s; user-select: none; }
+        .tree-toggle.open { transform: rotate(90deg); }
+        .tree-spacer { width: 18px; flex-shrink: 0; }
+        .t-key { color: #0369a1; font-weight: 700; }
+        .t-colon { color: var(--text-muted); margin: 0 4px; }
+        .t-str { color: #16a34a; }
+        .t-num { color: #b45309; font-weight: 600; }
+        .t-bool { color: #7c3aed; font-weight: 600; }
+        .t-null { color: #94a3b8; font-style: italic; }
+        .t-obj { color: #64748b; }
+        .t-old { text-decoration: line-through; opacity: 0.55; margin-right: 6px; }
+        .t-arrow { color: var(--text-muted); margin: 0 5px; font-size: 11px; }
+        .t-badge { margin-left: 7px; font-size: 9px; font-weight: 700; font-family: var(--font); padding: 1px 6px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+        .tb-a { background: var(--added-border); color: #fff; }
+        .tb-r { background: var(--removed-border); color: #fff; }
+        .tb-c { background: var(--changed-border); color: #fff; }
+        .t-path-btn { margin-left: auto; font-size: 10px; font-family: var(--font); background: rgba(0,180,180,0.1); color: var(--teal-dark); border: none; padding: 2px 7px; border-radius: 4px; cursor: pointer; opacity: 0; transition: opacity 0.15s; white-space: nowrap; font-weight: 500; }
+        .tree-row:hover .t-path-btn { opacity: 1; }
+        .t-path-btn:hover { background: rgba(0,180,180,0.2); }
+        .tree-children { padding-left: 20px; }
+        .tree-children.hidden { display: none; }
+
+        /* Unified diff */
+        .unified-view { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; }
+        .dl { display: flex; align-items: stretch; min-height: 22px; }
+        .dl:hover { filter: brightness(0.97); }
+        .dl-g { width: 24px; min-width: 24px; display: flex; align-items: flex-start; justify-content: center; padding-top: 2px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .dl-c { flex: 1; padding: 1px 14px 1px 4px; white-space: pre-wrap; word-break: break-all; }
+        .dl-added { background: var(--added); }
+        .dl-added .dl-g { color: var(--added-border); }
+        .dl-removed { background: var(--removed); }
+        .dl-removed .dl-g { color: var(--removed-border); }
+        .dl-context { background: var(--white); }
+        .dl-context .dl-g { color: #ddd; }
+        .dl-sep { background: var(--surface2); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); justify-content: center; align-items: center; padding: 2px 0; color: var(--text-light); font-size: 11px; font-family: var(--font); letter-spacing: 0.5px; }
+
+        /* Side by side */
+        .sbs { display: grid; grid-template-columns: 1fr 1fr; }
+        .sbs-col { overflow: auto; }
+        .sbs-col:first-child { border-right: 1px solid var(--border); }
+        .sbs-head { padding: 7px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--surface2); }
+        .sbs-head.a { color: var(--removed-text); }
+        .sbs-head.b { color: var(--added-text); }
+
+        /* Identical / empty states */
+        .diff-identical { padding: 32px 24px; text-align: center; background: var(--success-bg); }
+        .diff-identical-icon { font-size: 22px; margin-bottom: 8px; }
+        .diff-identical-text { font-size: 14px; font-weight: 600; color: var(--success); }
+        .diff-empty { padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+        .toast { position: fixed; bottom: 28px; right: 24px; background: var(--navy); color: white; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(60px); opacity: 0; transition: all 0.22s ease; z-index: 999; pointer-events: none; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        @media (max-width: 800px) {
+          .wrapper { padding: 0 16px 48px; }
+          .page-title { font-size: 22px; }
+          .input-grid { grid-template-columns: 1fr; }
+          .input-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+          .sbs { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <div class="site-nav">
+        <a href="https://testleft.co.uk" class="site-logo">
+            <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+        </a>
+        <div class="nav-links">
+            <a href="https://testleft.co.uk" class="nav-link">← Blog</a>
+            <a href="https://testleft.co.uk/tools/json-tool.html" class="nav-link">JSON Utility</a>
+            <a href="#" onclick="downloadTool(event)" class="btn btn-outline" style="padding:6px 12px;font-size:12px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download
+            </a>
+        </div>
+    </div>
+    <div class="page-header-inner">
+        <div class="page-title">JSON <span>Diff</span></div>
+        <div class="page-subtitle">Compare two JSON documents · Highlight added, removed &amp; changed values</div>
+        <div class="security-notice">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            100% client-side · your data never leaves this page
+            <button class="info-btn" onclick="toggleSecurityPopup(event)" aria-label="Security information">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </button>
+        </div>
+        <div class="security-popup" id="securityPopup">
+            <div class="security-popup-header">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>About this tool</span>
+                <button class="popup-close" onclick="toggleSecurityPopup(event)">✕</button>
+            </div>
+            <div class="security-popup-body">
+                <div class="popup-section-label">Privacy &amp; security</div>
+                <div class="security-item">
+                    <div class="security-item-icon">🔒</div>
+                    <div>
+                        <div class="security-item-title">100% client-side</div>
+                        <div class="security-item-desc">Runs entirely in your browser. No data sent to any server,
+                            nothing stored.
+                        </div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="security-item-icon">👁️</div>
+                    <div>
+                        <div class="security-item-title">Open to inspect</div>
+                        <div class="security-item-desc">Single unobfuscated HTML file — open DevTools to verify.</div>
+                    </div>
+                </div>
+                <div class="popup-section-label">Run offline</div>
+                <div class="security-item">
+                    <div class="security-item-icon">✈️</div>
+                    <div>
+                        <div class="security-item-title">Download &amp; use locally</div>
+                        <div class="security-item-desc">Save the file, double-click to open in any browser. No install,
+                            no internet.
+                        </div>
+                    </div>
+                </div>
+                <a href="#" onclick="downloadTool(event)" class="btn btn-primary"
+                   style="align-self:flex-start;font-size:12px;padding:7px 14px;margin-top:2px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper">
+
+    <div class="controls-bar">
+        <button class="btn btn-primary" onclick="runDiff()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Compare
+        </button>
+        <div class="controls-divider"></div>
+        <button class="sample-btn" onclick="loadSample()">Load sample ↓</button>
+        <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
+        <div class="controls-divider"></div>
+        <button class="btn btn-outline" onclick="swapPanes()">⇄ Swap</button>
+        <div class="view-toggle-group" id="viewGroup" style="display:none;">
+            <button class="vbtn active" id="vbtn-tree" onclick="switchView('tree')">Tree</button>
+            <button class="vbtn" id="vbtn-unified" onclick="switchView('unified')">Unified</button>
+            <button class="vbtn" id="vbtn-sbs" onclick="switchView('sbs')">Side by Side</button>
+        </div>
+    </div>
+
+    <div class="card">
+
+        <!-- Input -->
+        <div>
+            <div class="section-header">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)"
+                     stroke-width="2">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                </svg>
+                <span class="section-title">Input</span>
+                <span class="section-sub">Paste both JSON documents to compare</span>
+            </div>
+            <div class="input-grid">
+                <div class="input-pane">
+                    <div class="pane-label">
+                        <span class="pane-label-text a">Original (A)</span>
+                        <div class="pane-actions">
+                            <button class="pane-btn" onclick="pastePane('a')">Paste</button>
+                            <button class="pane-btn" onclick="formatPane('a')">Format</button>
+                        </div>
+                    </div>
+                    <div class="pane-editor" id="pe-a">
+                        <textarea class="pane-textarea" id="input-a" spellcheck="false"
+                                  placeholder='{"name":"Alice","age":30,"role":"admin"}'></textarea>
+                    </div>
+                    <div class="pane-error" id="err-a"></div>
+                </div>
+                <div class="input-pane">
+                    <div class="pane-label">
+                        <span class="pane-label-text b">Modified (B)</span>
+                        <div class="pane-actions">
+                            <button class="pane-btn" onclick="pastePane('b')">Paste</button>
+                            <button class="pane-btn" onclick="formatPane('b')">Format</button>
+                        </div>
+                    </div>
+                    <div class="pane-editor" id="pe-b">
+                        <textarea class="pane-textarea" id="input-b" spellcheck="false"
+                                  placeholder='{"name":"Alice","age":31,"role":"editor","active":true}'></textarea>
+                    </div>
+                    <div class="pane-error" id="err-b"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status + actions header -->
+        <div class="card-header" id="cardHeader" style="display:none;">
+            <div class="card-header-left">
+        <span class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusLabel">Ready</span>
+        </span>
+                <span class="status-msg" id="statusMsg"></span>
+            </div>
+            <div class="card-actions">
+                <button class="icon-btn" onclick="copyDiffJson()">Copy diff JSON</button>
+                <button class="icon-btn" onclick="exportReport()">Export report</button>
+            </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat">Added <span class="stat-val stat-added" id="sAdded">—</span></div>
+            <div class="stat">Removed <span class="stat-val stat-removed" id="sRemoved">—</span></div>
+            <div class="stat">Changed <span class="stat-val stat-changed" id="sChanged">—</span></div>
+            <div class="stat">Unchanged <span class="stat-val stat-unchanged" id="sUnchanged">—</span></div>
+            <div style="margin-left:auto;font-size:11px;color:var(--text-light);">Click any row to copy path</div>
+        </div>
+
+        <!-- Diff result -->
+        <div id="diffSection" style="display:none;">
+            <div class="section-header">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)"
+                     stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span class="section-title">Diff Result</span>
+                <span class="section-sub" id="diffSub"></span>
+            </div>
+            <div id="diffOutput"></div>
+        </div>
+
+    </div>
+
+    <div class="tool-footer">
+        <a href="https://testleft.co.uk" class="site-logo" style="font-size:15px;">
+            <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+        </a>
+        <span class="footer-sep">·</span>
+        <span class="footer-note">Free SDET tools · More coming soon</span>
+    </div>
+
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+    let currentView = 'tree';
+    let lastA = null, lastB = null, lastFlat = null, lastTree = null;
+
+    function getType(v) { if (v === null) return 'null'; if (Array.isArray(v)) return 'array'; return typeof v; }
+
+    function flatDiff(a, b, path) {
+      path = path || '$';
+      const at = getType(a), bt = getType(b);
+      const out = [];
+      if (at !== bt) { out.push({ path, type: 'changed', aVal: a, bVal: b }); return out; }
+      if (at === 'object') {
+        for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+          const cp = path + '.' + k;
+          if (!(k in a)) out.push(...leaves(b[k], cp, 'added'));
+          else if (!(k in b)) out.push(...leaves(a[k], cp, 'removed'));
+          else out.push(...flatDiff(a[k], b[k], cp));
+        }
+        return out;
+      }
+      if (at === 'array') {
+        const mx = Math.max(a.length, b.length);
+        for (let i = 0; i < mx; i++) {
+          const cp = path + '[' + i + ']';
+          if (i >= a.length) out.push(...leaves(b[i], cp, 'added'));
+          else if (i >= b.length) out.push(...leaves(a[i], cp, 'removed'));
+          else out.push(...flatDiff(a[i], b[i], cp));
+        }
+        return out;
+      }
+      out.push({ path, type: a === b ? 'unchanged' : 'changed', aVal: a, bVal: b });
+      return out;
+    }
+
+    function leaves(v, path, type) {
+      const out = [], t = getType(v);
+      out.push({ path, type, aVal: type === 'removed' ? v : undefined, bVal: type === 'added' ? v : undefined });
+      if (t === 'object') Object.keys(v).forEach(k => out.push(...leaves(v[k], path + '.' + k, type)));
+      else if (t === 'array') v.forEach((x, i) => out.push(...leaves(x, path + '[' + i + ']', type)));
+      return out;
+    }
+
+    function treeDiff(a, b, path) {
+      path = path || '$';
+      const at = getType(a), bt = getType(b);
+      if (at !== bt) return { path, type: 'changed', aVal: a, bVal: b, aType: at, bType: bt };
+      if (at === 'object') {
+        const kids = []; let ch = false;
+        for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+          let c;
+          if (!(k in a)) { c = { path: path+'.'+k, key: k, type: 'added', bVal: b[k], bType: getType(b[k]) }; ch = true; }
+          else if (!(k in b)) { c = { path: path+'.'+k, key: k, type: 'removed', aVal: a[k], aType: getType(a[k]) }; ch = true; }
+          else { c = treeDiff(a[k], b[k], path+'.'+k); c.key = k; if (c.type !== 'unchanged') ch = true; }
+          kids.push(c);
+        }
+        return { path, type: ch ? 'modified' : 'unchanged', aType: 'object', bType: 'object', children: kids };
+      }
+      if (at === 'array') {
+        const kids = []; let ch = false;
+        const mx = Math.max(a.length, b.length);
+        for (let i = 0; i < mx; i++) {
+          let c;
+          if (i >= a.length) { c = { path: path+'['+i+']', key: '['+i+']', type: 'added', bVal: b[i], bType: getType(b[i]) }; ch = true; }
+          else if (i >= b.length) { c = { path: path+'['+i+']', key: '['+i+']', type: 'removed', aVal: a[i], aType: getType(a[i]) }; ch = true; }
+          else { c = treeDiff(a[i], b[i], path+'['+i+']'); c.key = '['+i+']'; if (c.type !== 'unchanged') ch = true; }
+          kids.push(c);
+        }
+        return { path, type: ch ? 'modified' : 'unchanged', aType: 'array', bType: 'array', children: kids };
+      }
+      return { path, type: a === b ? 'unchanged' : 'changed', aVal: a, bVal: b, aType: at, bType: bt };
+    }
+
+    function runDiff() {
+      const rA = document.getElementById('input-a').value.trim();
+      const rB = document.getElementById('input-b').value.trim();
+      let eA = '', eB = '', a, b;
+      try { a = JSON.parse(rA); } catch(e) { eA = '✗ ' + e.message; }
+      try { b = JSON.parse(rB); } catch(e) { eB = '✗ ' + e.message; }
+
+      setErr('a', eA); setErr('b', eB);
+      if (eA || eB) { setStatus('invalid', eA || eB); showCardHeader(); return; }
+      if (!rA && !rB) return;
+
+      lastA = a; lastB = b;
+      lastFlat = flatDiff(a, b);
+      lastTree = treeDiff(a, b);
+
+      const c = { added: 0, removed: 0, changed: 0, unchanged: 0 };
+      lastFlat.forEach(d => { if (c[d.type] !== undefined) c[d.type]++; });
+      const total = c.added + c.removed + c.changed;
+
+      setStatus('valid', total ? total + ' difference' + (total !== 1 ? 's' : '') + ' found' : 'Identical — no differences found');
+      showCardHeader();
+      document.getElementById('statsBar').classList.add('visible');
+      document.getElementById('sAdded').textContent = c.added;
+      document.getElementById('sRemoved').textContent = c.removed;
+      document.getElementById('sChanged').textContent = c.changed;
+      document.getElementById('sUnchanged').textContent = c.unchanged;
+      document.getElementById('diffSection').style.display = '';
+      document.getElementById('viewGroup').style.display = '';
+      renderView();
+      document.getElementById('diffSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function setErr(p, msg) {
+      const el = document.getElementById('err-' + p);
+      const ta = document.getElementById('input-' + p);
+      el.textContent = msg;
+      el.classList.toggle('visible', !!msg);
+      ta.classList.toggle('has-error', !!msg);
+    }
+
+    function showCardHeader() { document.getElementById('cardHeader').style.display = ''; }
+
+    function setStatus(type, msg) {
+      const pill = document.getElementById('statusPill');
+      pill.className = 'status-pill' + (type === 'valid' ? ' valid' : type === 'invalid' ? ' invalid' : '');
+      document.getElementById('statusLabel').textContent = type === 'valid' ? 'Done' : type === 'invalid' ? 'Error' : 'Ready';
+      document.getElementById('statusMsg').textContent = msg || '';
+    }
+
+    function switchView(v) {
+      currentView = v;
+      ['tree','unified','sbs'].forEach(id => document.getElementById('vbtn-'+id).classList.toggle('active', id === v));
+      renderView();
+    }
+
+    function renderView() {
+      if (!lastTree) return;
+      const subs = { tree: 'Tree view · Click to expand · Hover to copy path', unified: 'Unified diff · ± lines with context', sbs: 'Side-by-side comparison' };
+      document.getElementById('diffSub').textContent = subs[currentView];
+      if (currentView === 'tree') renderTree();
+      else if (currentView === 'unified') renderUnified();
+      else renderSBS();
+    }
+
+    // ── TREE ────────────────────────────────────────────────────────────────────
+    function renderTree() {
+      const out = document.getElementById('diffOutput');
+      const c = { added: 0, removed: 0, changed: 0 };
+      lastFlat.forEach(d => { if (c[d.type] !== undefined) c[d.type]++; });
+      if (!c.added && !c.removed && !c.changed) { out.innerHTML = identicalHtml(); return; }
+      const wrap = document.createElement('div');
+      wrap.className = 'tree-view';
+      wrap.appendChild(mkNode(lastTree, 0, true));
+      out.innerHTML = '';
+      out.appendChild(wrap);
+    }
+
+    function mkNode(node, depth, isRoot) {
+      const wrap = document.createElement('div');
+      wrap.className = 'tree-node' + (node.type === 'added' ? ' tn-added' : node.type === 'removed' ? ' tn-removed' : node.type === 'changed' ? ' tn-changed' : '');
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      row.style.paddingLeft = (14 + depth * 20) + 'px';
+      const hasKids = node.children && node.children.length > 0;
+
+      const tog = document.createElement('span');
+      if (hasKids) { tog.className = 'tree-toggle open'; tog.textContent = '▶'; }
+      else tog.className = 'tree-spacer';
+      row.appendChild(tog);
+
+      if (!isRoot && node.key !== undefined) {
+        const k = document.createElement('span'); k.className = 't-key'; k.textContent = node.key; row.appendChild(k);
+        const c = document.createElement('span'); c.className = 't-colon'; c.textContent = ': '; row.appendChild(c);
+      }
+
+      if (node.type === 'changed') {
+        const ov = document.createElement('span'); ov.className = 't-old ' + vcls(node.aVal); ov.textContent = fv(node.aVal); row.appendChild(ov);
+        const ar = document.createElement('span'); ar.className = 't-arrow'; ar.textContent = '→'; row.appendChild(ar);
+        const nv = document.createElement('span'); nv.className = vcls(node.bVal); nv.textContent = fv(node.bVal); row.appendChild(nv);
+        mkBadge(row, 'c');
+      } else if (node.type === 'added') {
+        const v = document.createElement('span'); v.className = hasKids ? 't-obj' : vcls(node.bVal); v.textContent = hasKids ? ((node.bType === 'array') ? '[…]' : '{…}') : fv(node.bVal); row.appendChild(v);
+        mkBadge(row, 'a');
+      } else if (node.type === 'removed') {
+        const v = document.createElement('span'); v.className = (hasKids ? 't-obj' : vcls(node.aVal)) + ' t-old'; v.textContent = hasKids ? ((node.aType === 'array') ? '[…]' : '{…}') : fv(node.aVal); row.appendChild(v);
+        mkBadge(row, 'r');
+      } else {
+        const v = document.createElement('span');
+        if (!hasKids) { v.className = vcls(node.aVal); v.textContent = fv(node.aVal); }
+        else { v.className = 't-obj'; v.textContent = node.aType === 'array' ? '[ '+node.children.length+' items ]' : '{ '+node.children.length+' keys }'; }
+        row.appendChild(v);
+      }
+
+      const pb = document.createElement('button');
+      pb.className = 't-path-btn'; pb.textContent = node.path; pb.title = 'Copy path';
+      pb.onclick = e => { e.stopPropagation(); copyToClipboard(node.path, 'Path copied!'); };
+      row.appendChild(pb);
+      wrap.appendChild(row);
+
+      if (hasKids) {
+        const kids = document.createElement('div'); kids.className = 'tree-children';
+        node.children.forEach(ch => kids.appendChild(mkNode(ch, depth + 1, false)));
+        wrap.appendChild(kids);
+        row.addEventListener('click', () => { kids.classList.toggle('hidden'); tog.classList.toggle('open', !kids.classList.contains('hidden')); });
+      } else {
+        row.addEventListener('click', () => copyToClipboard(node.path, 'Path copied!'));
+      }
+      return wrap;
+    }
+
+    function mkBadge(row, t) { const b = document.createElement('span'); b.className = 't-badge tb-'+t; b.textContent = t === 'a' ? 'added' : t === 'r' ? 'removed' : 'changed'; row.appendChild(b); }
+    function vcls(v) { const t = getType(v); return t === 'string' ? 't-str' : t === 'number' ? 't-num' : t === 'boolean' ? 't-bool' : t === 'null' ? 't-null' : 't-obj'; }
+    function fv(v) { if (v === undefined) return ''; if (v === null) return 'null'; if (typeof v === 'string') return '"' + v + '"'; if (typeof v === 'object') return Array.isArray(v) ? '[…]' : '{…}'; return String(v); }
+
+    // ── UNIFIED ─────────────────────────────────────────────────────────────────
+    function renderUnified() {
+      const diff = lcs(JSON.stringify(lastA,null,2).split('\n'), JSON.stringify(lastB,null,2).split('\n'));
+      const out = document.getElementById('diffOutput');
+      if (!diff.some(d => d.type !== 'context')) { out.innerHTML = identicalHtml(); return; }
+      const CONTEXT = 3;
+      const vis = new Set();
+      diff.forEach((d,i) => { if (d.type !== 'context') for (let j = Math.max(0,i-CONTEXT); j <= Math.min(diff.length-1,i+CONTEXT); j++) vis.add(j); });
+      const wrap = document.createElement('div'); wrap.className = 'unified-view';
+      let pv = false;
+      diff.forEach((d, i) => {
+        if (!vis.has(i)) { if (pv) { const s = document.createElement('div'); s.className = 'dl dl-sep'; s.textContent = '⋯'; wrap.appendChild(s); pv = false; } return; }
+        pv = true;
+        const row = document.createElement('div'); row.className = 'dl dl-' + d.type;
+        const g = document.createElement('span'); g.className = 'dl-g'; g.textContent = d.type === 'added' ? '+' : d.type === 'removed' ? '−' : ' ';
+        const c = document.createElement('span'); c.className = 'dl-c'; c.textContent = d.text;
+        row.appendChild(g); row.appendChild(c); wrap.appendChild(row);
+      });
+      out.innerHTML = ''; out.appendChild(wrap);
+    }
+
+    // ── SBS ─────────────────────────────────────────────────────────────────────
+    function renderSBS() {
+      const diff = lcs(JSON.stringify(lastA,null,2).split('\n'), JSON.stringify(lastB,null,2).split('\n'));
+      const out = document.getElementById('diffOutput');
+      if (!diff.some(d => d.type !== 'context')) { out.innerHTML = identicalHtml(); return; }
+      const pairs = [];
+      let i = 0;
+      while (i < diff.length) {
+        if (diff[i].type === 'removed' && i+1 < diff.length && diff[i+1].type === 'added') { pairs.push({ l: diff[i], r: diff[i+1] }); i += 2; }
+        else if (diff[i].type === 'removed') { pairs.push({ l: diff[i], r: null }); i++; }
+        else if (diff[i].type === 'added') { pairs.push({ l: null, r: diff[i] }); i++; }
+        else { pairs.push({ l: diff[i], r: { type: 'context', text: diff[i].text } }); i++; }
+      }
+      const grid = document.createElement('div'); grid.className = 'sbs';
+      const lc = document.createElement('div'); lc.className = 'sbs-col';
+      const lh = document.createElement('div'); lh.className = 'sbs-head a'; lh.textContent = 'Original (A)'; lc.appendChild(lh);
+      const rc = document.createElement('div'); rc.className = 'sbs-col';
+      const rh = document.createElement('div'); rh.className = 'sbs-head b'; rh.textContent = 'Modified (B)'; rc.appendChild(rh);
+      const mkR = d => {
+        const row = document.createElement('div'); row.className = 'dl dl-' + (d ? d.type : 'context');
+        if (!d) row.style.background = 'var(--surface2)';
+        const g = document.createElement('span'); g.className = 'dl-g'; g.textContent = !d ? '' : d.type === 'added' ? '+' : d.type === 'removed' ? '−' : ' ';
+        const c = document.createElement('span'); c.className = 'dl-c'; c.textContent = d ? d.text : '';
+        row.appendChild(g); row.appendChild(c); return row;
+      };
+      pairs.forEach(p => { lc.appendChild(mkR(p.l)); rc.appendChild(mkR(p.r)); });
+      grid.appendChild(lc); grid.appendChild(rc); out.innerHTML = ''; out.appendChild(grid);
+    }
+
+    function lcs(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+      for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j],dp[i][j-1]);
+      const out = []; let i = m, j = n;
+      while (i > 0 || j > 0) {
+        if (i>0&&j>0&&a[i-1]===b[j-1]) { out.unshift({type:'context',text:a[i-1]}); i--;j--; }
+        else if (j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])) { out.unshift({type:'added',text:b[j-1]}); j--; }
+        else { out.unshift({type:'removed',text:a[i-1]}); i--; }
+      }
+      return out;
+    }
+
+    function identicalHtml() { return '<div class="diff-identical"><div class="diff-identical-icon">✓</div><div class="diff-identical-text">Documents are identical — no differences found.</div></div>'; }
+
+    // ── CONTROLS ────────────────────────────────────────────────────────────────
+    function formatPane(p) {
+      const ta = document.getElementById('input-'+p);
+      try { ta.value = JSON.stringify(JSON.parse(ta.value), null, 2); setErr(p, ''); }
+      catch(e) { setErr(p, '✗ '+e.message); }
+      syncH();
+    }
+    async function pastePane(p) {
+      try { document.getElementById('input-'+p).value = await navigator.clipboard.readText(); syncH(); }
+      catch { document.getElementById('input-'+p).focus(); }
+    }
+    function swapPanes() {
+      const a = document.getElementById('input-a'), b = document.getElementById('input-b');
+      [a.value, b.value] = [b.value, a.value]; syncH();
+    }
+    function clearAll() {
+      ['a','b'].forEach(p => { document.getElementById('input-'+p).value = ''; setErr(p,''); });
+      document.getElementById('cardHeader').style.display = 'none';
+      document.getElementById('statsBar').classList.remove('visible');
+      document.getElementById('diffSection').style.display = 'none';
+      document.getElementById('viewGroup').style.display = 'none';
+      lastA=lastB=lastFlat=lastTree=null; syncH();
+    }
+    function loadSample() {
+      document.getElementById('input-a').value = JSON.stringify({"name":"Alice Johnson","age":30,"role":"admin","active":true,"email":"alice@example.com","address":{"city":"London","postcode":"EC1A 1BB","country":"UK"},"tags":["qa","automation"],"score":95},null,2);
+      document.getElementById('input-b').value = JSON.stringify({"name":"Alice Johnson","age":31,"role":"editor","active":false,"email":"alice@testleft.co.uk","address":{"city":"Manchester","postcode":"M1 1AE","country":"UK"},"tags":["qa","automation","ci"],"permissions":["read","write"]},null,2);
+      setErr('a',''); setErr('b',''); syncH();
+    }
+    function copyDiffJson() {
+      if (!lastFlat) return;
+      copyToClipboard(JSON.stringify(lastFlat.filter(d=>d.type!=='unchanged').map(d=>({path:d.path,type:d.type,...(d.aVal!==undefined?{original:d.aVal}:{}),...(d.bVal!==undefined?{modified:d.bVal}:{})})),null,2), 'Diff JSON copied!');
+    }
+    function exportReport() {
+      if (!lastFlat) return;
+      const c={added:0,removed:0,changed:0,unchanged:0};
+      lastFlat.forEach(d=>{if(c[d.type]!==undefined)c[d.type]++;});
+      const blob = new Blob([JSON.stringify({generated:new Date().toISOString(),tool:'TestLeft JSON Diff — testleft.co.uk/tools/',summary:c,differences:lastFlat.filter(d=>d.type!=='unchanged').map(d=>({path:d.path,type:d.type,...(d.aVal!==undefined?{original:d.aVal}:{}),...(d.bVal!==undefined?{modified:d.bVal}:{})}))},null,2)],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='json-diff-report.json'; a.click();
+    }
+    function downloadTool(e) { e.preventDefault(); const a=document.createElement('a'); a.href=window.location.href; a.download='testLeftJsonDiff.html'; a.click(); }
+
+    function copyToClipboard(text, msg) {
+      const done = () => showToast(msg||'Copied!');
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done).catch(()=>fb(text,done));
+      else fb(text,done);
+    }
+    function fb(text,cb) { const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;top:-9999px;opacity:0;'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy');cb();}catch(e){} document.body.removeChild(ta); }
+    function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+
+    function toggleSecurityPopup(e) {
+      e.stopPropagation();
+      const popup=document.getElementById('securityPopup');
+      const rect=e.currentTarget.getBoundingClientRect();
+      popup.style.top=(rect.bottom+8)+'px';
+      popup.style.left=Math.min(rect.left,window.innerWidth-390)+'px';
+      popup.classList.toggle('open');
+    }
+    document.addEventListener('click',()=>{ const p=document.getElementById('securityPopup'); if(p&&p.classList.contains('open'))p.classList.remove('open'); });
+    document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter')runDiff(); });
+
+    function syncH() {
+      const ta=document.getElementById('input-a'), tb=document.getElementById('input-b');
+      const pa=document.getElementById('pe-a'), pb=document.getElementById('pe-b');
+      ta.style.height='auto'; tb.style.height='auto';
+      const h=Math.max(240,ta.scrollHeight,tb.scrollHeight);
+      pa.style.height=h+'px'; pb.style.height=h+'px';
+      ta.style.height='100%'; tb.style.height='100%';
+    }
+    document.getElementById('input-a').addEventListener('input',syncH);
+    document.getElementById('input-b').addEventListener('input',syncH);
+    syncH();
+</script>
+</body>
+</html>

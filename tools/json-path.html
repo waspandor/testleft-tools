@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Free online JSON formatter, validator and JSONPath explorer. 100% client-side — your data never leaves your browser. Built for SDETs and developers.">
+    <meta name="author" content="TestLeft.co.uk">
+    <meta property="og:title" content="JSONPath Explorer — TestLeft.co.uk">
+    <meta property="og:description"
+          content="Free online JSON formatter, validator and JSONPath explorer for SDETs and developers.">
+    <meta property="og:url" content="https://testleft.co.uk/tools/json-tool.html">
+    <title>JSONPath Explorer — TestLeft.co.uk | Free Jayway JSONPath Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --bg: #f0f1f2;
+          --white: #ffffff;
+          --surface2: #f7f8f9;
+          --border: #e2e4e8;
+          --teal: #00b4b4;
+          --teal-dark: #008f8f;
+          --teal-light: #e6f7f7;
+          --navy: #1a2a3a;
+          --text: #1a2a3a;
+          --text-muted: #6b7280;
+          --text-light: #9ca3af;
+          --success: #059669;
+          --success-bg: #ecfdf5;
+          --error: #dc2626;
+          --error-bg: #fef2f2;
+          --font: 'Inter', sans-serif;
+          --font-mono: 'JetBrains Mono', monospace;
+          --radius: 12px;
+          --radius-sm: 8px;
+          --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+        /* Page header */
+        .page-header { background: var(--white); border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        /* Site nav bar */
+        .site-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); max-width: 100%; }
+        .site-logo { font-family: var(--font); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: -0.03em; }
+        .logo-tl { color: var(--navy); }
+        .logo-left { color: var(--teal); }
+        .logo-dot { color: var(--text-muted); font-weight: 500; font-size: 14px; }
+        .nav-links { display: flex; gap: 16px; align-items: center; }
+        .nav-link { font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+        .nav-link:hover { color: var(--teal); }
+        .nav-download { padding: 6px 12px !important; font-size: 12px !important; }
+        /* Page header inner */
+        .page-header-inner { max-width: 1200px; margin: 0 auto; padding: 20px 24px 20px; }
+        /* Footer */
+        .tool-footer { margin-top: 32px; padding: 20px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .footer-sep { color: var(--text-light); }
+        .footer-note { font-size: 12px; color: var(--text-light); }
+        .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .breadcrumb a { color: var(--teal); text-decoration: none; font-weight: 500; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb-sep { color: var(--text-light); }
+        .page-title { font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+        .page-title span { color: var(--teal); }
+        .page-subtitle { margin-top: 6px; font-size: 14px; color: var(--text-muted); }
+        .security-notice { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--teal-light); border: 1px solid rgba(0,180,180,0.25); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--teal-dark); position: relative; }
+        .info-btn { background: none; border: none; cursor: pointer; color: var(--teal-dark); display: inline-flex; align-items: center; padding: 0 2px; opacity: 0.7; transition: opacity 0.15s; }
+        .info-btn:hover { opacity: 1; }
+        .security-popup { display: none; position: fixed; width: 380px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 9999; overflow: hidden; }
+        .security-popup.open { display: block; }
+        .security-popup-header { background: var(--navy); padding: 12px 16px; display: flex; align-items: center; gap: 8px; color: white; font-size: 12px; font-weight: 600; }
+        .security-popup-header svg { opacity: 0.7; flex-shrink: 0; }
+        .security-popup-header span { flex: 1; }
+        .popup-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; transition: color 0.15s; }
+        .popup-close:hover { color: white; }
+        .security-popup-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+        .security-popup-body::-webkit-scrollbar { width: 4px; }
+        .security-popup-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .security-item { display: flex; gap: 10px; align-items: flex-start; }
+        .security-item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+        .security-item-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+        .security-item-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+        .popup-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--teal-dark); margin: 6px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+        .wrapper { max-width: 1200px; margin: 0 auto; padding: 0 32px 48px; }
+
+        /* Controls */
+        .controls-bar { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; border: 1px solid var(--border); border-bottom: none; padding: 12px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .controls-divider { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+
+        .btn { font-family: var(--font); font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; line-height: 1; }
+        .btn-primary { background: var(--teal); color: white; border-color: var(--teal); }
+        .btn-primary:hover { background: var(--teal-dark); border-color: var(--teal-dark); box-shadow: 0 2px 8px rgba(0,180,180,0.3); }
+        .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+        .btn-outline:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+        .btn-ghost { background: transparent; color: var(--text-muted); border-color: transparent; }
+        .btn-ghost:hover { color: var(--error); background: var(--error-bg); }
+
+        .indent-wrap { margin-left: auto; display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        .indent-wrap select { font-family: var(--font); font-size: 12px; font-weight: 500; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); padding: 5px 8px; border-radius: var(--radius-sm); outline: none; cursor: pointer; }
+        .indent-wrap select:focus { border-color: var(--teal); }
+
+        .sample-btn { font-size: 12px; font-weight: 600; color: var(--teal); background: none; border: none; cursor: pointer; font-family: var(--font); padding: 0 4px; }
+        .sample-btn:hover { text-decoration: underline; }
+
+        /* Main card */
+        .card { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+
+        /* Mode tabs inside card header */
+        .card-header { padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; min-height: 42px; }
+        .card-header-left { display: flex; align-items: center; gap: 0; }
+
+        /* Status pill */
+        .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); transition: all 0.2s; }
+        .status-pill.valid { background: var(--success-bg); color: var(--success); border-color: rgba(5,150,105,0.2); }
+        .status-pill.invalid { background: var(--error-bg); color: var(--error); border-color: rgba(220,38,38,0.2); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+        .status-msg { font-size: 11px; color: var(--error); font-family: var(--font-mono); margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }
+
+        .card-actions { display: flex; gap: 6px; align-items: center; }
+        .icon-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--white); border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+        .icon-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+        /* The editor — two layers: textarea on top (raw editing), highlighted div behind */
+        .editor-wrap {
+          position: relative;
+          min-height: 480px;
+        }
+
+        /* Highlighted render layer */
+        .editor-highlight {
+          position: absolute;
+          inset: 0;
+          padding: 16px;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          line-height: 1.65;
+          white-space: pre-wrap;
+          word-break: break-word;
+          overflow-y: auto;
+          pointer-events: none;
+          color: var(--text);
+          z-index: 1;
+        }
+
+        /* When in "view" mode (formatted, path clicking), textarea hides and highlight becomes interactive */
+        .editor-wrap.view-mode .editor-highlight {
+          pointer-events: auto;
+          color: var(--text);
+          z-index: 2;
+          background: var(--white);
+          cursor: default;
+        }
+        .editor-wrap.view-mode textarea {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        textarea {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background: var(--white);
+          border: none;
+          padding: 16px;
+          font-family: var(--font-mono);
+          font-size: 13px;
+          line-height: 1.65;
+          color: var(--text);
+          resize: none;
+          outline: none;
+          z-index: 2;
+          caret-color: var(--teal);
+        }
+        textarea::placeholder { color: var(--text-light); }
+
+        /* edit-mode toggle button */
+        .edit-toggle {
+          font-family: var(--font); font-size: 11px; font-weight: 600;
+          color: var(--teal); background: var(--teal-light); border: 1.5px solid rgba(0,180,180,0.3);
+          border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s;
+          display: none;
+        }
+        .edit-toggle:hover { background: var(--teal); color: white; }
+        .editor-wrap.view-mode ~ * .edit-toggle,
+        .edit-toggle.visible { display: inline-flex; }
+
+        /* Syntax colours */
+        .jk { color: #0e7490; font-weight: 600; }
+        .js { color: #059669; }
+        .jn { color: #d97706; }
+        .jbool { color: #7c3aed; }
+        .jl { color: #9ca3af; }
+
+        /* Clickable value tokens */
+        .jv { border-radius: 3px; transition: background 0.1s; cursor: pointer; }
+        .jb-open { cursor: pointer; }
+        .jv:hover { background: rgba(0,180,180,0.14); outline: 1px solid rgba(0,180,180,0.35); }
+        .jv.selected { background: rgba(0,180,180,0.2); outline: 1px solid var(--teal); }
+        /* Syntax colours */
+        .jk    { color: #0369a1; font-weight: 700; font-style: normal; }
+        .js    { color: #16a34a; }
+        .jn    { color: #b45309; font-weight: 600; }
+        .jbool { color: #7c3aed; font-weight: 600; }
+        .jl    { color: #94a3b8; font-style: italic; }
+        .jb-punc { color: #64748b; }
+        .jk-label { color: #0369a1; font-weight: 700; cursor: pointer; border-radius: 2px; }
+        .jk-label:hover { background: rgba(3,105,161,0.08); }
+        /* Collapse tree */
+        .collapse-toggle { cursor: pointer; user-select: none; display: inline; }
+        .collapse-arrow-btn {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 18px; height: 18px; border-radius: 4px;
+          background: transparent; border: none;
+          color: var(--teal); font-size: 13px; font-style: normal;
+          vertical-align: middle; margin-right: 2px;
+          line-height: 1; transition: color 0.15s;
+        }
+        .collapse-toggle:hover .collapse-arrow-btn { color: var(--teal-dark); }
+        .collapse-body { display: block; margin: 0; padding: 0; }
+        .collapse-preview { display: none; cursor: pointer; }
+        .collapse-preview:hover .preview-text { color: var(--teal); }
+        .preview-text { font-size: 11px; color: var(--text-light); font-style: italic; margin: 0 3px; }
+
+        /* Error inline highlight */
+        .err-line { background: var(--error-bg); border-left: 3px solid var(--error); padding: 10px 14px; font-size: 12px; font-family: var(--font-mono); color: var(--error); white-space: pre-wrap; }
+
+        /* Stats bar */
+        .stats-bar { padding: 9px 16px; border-top: 1px solid var(--border); display: none; gap: 16px; flex-wrap: wrap; background: var(--surface2); align-items: center; }
+        .stats-bar.visible { display: flex; }
+        .stat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .stat-val { font-weight: 700; color: var(--teal-dark); font-family: var(--font-mono); }
+
+        /* Path explorer — top section of unified card */
+        .path-section { border-bottom: 1px solid var(--border); }
+        .path-section-header { background: var(--navy); padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-radius: 0; }
+        .path-panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); }
+        .path-panel-sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+        .path-section-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: var(--white); }
+        .path-input-row { display: flex; gap: 8px; align-items: center; }
+        .path-input { flex: 1; font-family: var(--font-mono); font-size: 13px; font-weight: 500; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); padding: 9px 14px; border-radius: var(--radius-sm); outline: none; transition: border-color 0.15s; }
+        .path-input:focus { border-color: var(--teal); background: white; }
+        .path-input::placeholder { color: var(--text-light); font-size: 12px; }
+        .path-result { display: none; padding: 10px 14px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; word-break: break-all; max-height: 380px; overflow-y: auto; }
+        .path-result::-webkit-scrollbar { width: 4px; }
+        .path-result::-webkit-scrollbar-thumb { background: rgba(5,150,105,0.3); border-radius: 2px; }
+        .path-result.success { display: block; background: var(--success-bg); border-left: 3px solid var(--success); }
+        .path-result.error { display: block; background: var(--error-bg); border-left: 3px solid var(--error); color: var(--error); }
+        .path-result-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; opacity: 0.6; }
+        .path-result-value { color: var(--text); }
+        .path-result-json { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; background: transparent; border: none; color: var(--text); max-height: 320px; overflow-y: auto;; }
+        .path-result-json::-webkit-scrollbar { width: 4px; }
+        .path-result-json::-webkit-scrollbar-thumb { background: rgba(5,150,105,0.3); border-radius: 2px; }
+        .array-result { display: flex; flex-direction: column; gap: 4px; }
+        .array-meta { font-size: 11px; font-weight: 700; color: var(--success); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .array-count-badge { background: var(--teal); color: white; font-family: var(--font); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.03em; }
+        .back-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--teal-dark); background: var(--teal-light); border: 1.5px solid rgba(0,180,180,0.3); border-radius: 6px; padding: 2px 10px; cursor: pointer; transition: all 0.15s; margin-right: auto; }
+        .back-btn:hover { background: var(--teal); color: white; border-color: var(--teal); }
+        .array-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .array-items { display: flex; flex-direction: column; gap: 3px; max-height: 320px; overflow-y: auto; }
+        .array-items::-webkit-scrollbar { width: 4px; }
+        .array-items::-webkit-scrollbar-thumb { background: rgba(0,180,180,0.3); border-radius: 2px; }
+        .array-items::-webkit-scrollbar { width: 4px; }
+        .array-items::-webkit-scrollbar-thumb { background: rgba(5,150,105,0.3); border-radius: 2px; }
+        .array-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: all 0.12s; background: rgba(5,150,105,0.04); }
+        .array-item:hover { background: var(--teal-light); border-color: rgba(0,180,180,0.25); }
+        .array-item.selected { background: var(--teal-light); border-color: var(--teal); }
+        .array-item-index { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--teal-dark); background: rgba(0,180,180,0.12); padding: 2px 7px; border-radius: 4px; flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
+        .array-item-body { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; flex: 1; }
+        .ai-key { color: #0e7490; font-weight: 600; }
+        .ai-sep { color: var(--text-muted); }
+        .ai-val { color: #059669; }
+        .array-item-type { display: none; }
+        .path-result.error .path-result-value { color: var(--error); }
+        .path-hint { font-size: 11px; color: var(--text-light); }
+        .path-hint code { font-family: var(--font-mono); background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--teal-dark); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 28px; right: 24px; background: var(--navy); color: white; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(60px); opacity: 0; transition: all 0.22s ease; z-index: 999; pointer-events: none; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+
+        @media (max-width: 600px) { .page-title { font-size: 22px; } .controls-bar { gap: 6px; } .indent-wrap { margin-left: 0; width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <div class="site-nav">
+        <a href="https://testleft.co.uk" class="site-logo">
+            <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+        </a>
+        <div class="nav-links">
+            <a href="https://testleft.co.uk" class="nav-link">← Blog</a>
+            <a href="https://testleft.co.uk/tools/json-path.html" download="testLeftJsonPathUtility.html"
+               class="btn btn-outline nav-download">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download
+            </a>
+        </div>
+    </div>
+    <div class="page-header-inner">
+        <div class="page-title">JSON<span>Path</span></div>
+        <div class="page-subtitle">Format · Validate · Jayway JSONPath Explorer</div>
+        <div class="security-notice">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            100% client-side · your data never leaves this page
+            <button class="info-btn" onclick="toggleSecurityPopup(event)" aria-label="Security information">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Info popup -->
+        <div class="security-popup" id="securityPopup">
+            <div class="security-popup-header">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>About this tool</span>
+                <button class="popup-close" onclick="toggleSecurityPopup(event)">✕</button>
+            </div>
+            <div class="security-popup-body">
+
+                <div class="popup-section-label">Privacy &amp; security</div>
+                <div class="security-item">
+                    <div class="security-item-icon">🔒</div>
+                    <div>
+                        <div class="security-item-title">100% client-side</div>
+                        <div class="security-item-desc">Runs entirely in your browser. No data sent to any server,
+                            nothing stored.
+                        </div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="security-item-icon">👁️</div>
+                    <div>
+                        <div class="security-item-title">Open to inspect</div>
+                        <div class="security-item-desc">Single unobfuscated HTML file — open DevTools to verify.</div>
+                    </div>
+                </div>
+
+                <div class="popup-section-label">Run offline</div>
+                <div class="security-item">
+                    <div class="security-item-icon">✈️</div>
+                    <div>
+                        <div class="security-item-title">Download &amp; use locally</div>
+                        <div class="security-item-desc">Save the file, double-click to open in any browser. No install,
+                            no internet, no setup.
+                        </div>
+                    </div>
+                </div>
+                <a href="https://testleft.co.uk/tools/json-tool.html" download="testLeftJsonUtility.html"
+                   class="btn btn-primary"
+                   style="align-self:flex-start;font-size:12px;padding:7px 14px;margin-top:2px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper">
+
+    <!-- Controls -->
+    <div class="controls-bar">
+        <button class="btn btn-primary" onclick="formatJSON()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            Format
+        </button>
+        <button class="btn btn-outline" onclick="minifyJSON()">Minify</button>
+        <div class="controls-divider"></div>
+        <button class="sample-btn" onclick="loadSample()">Load sample ↓</button>
+        <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
+        <div class="indent-wrap">
+            <span>Indent</span>
+            <select id="indent">
+                <option value="2">2 spaces</option>
+                <option value="4">4 spaces</option>
+                <option value="tab">tab</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Unified card -->
+    <div class="card">
+
+        <!-- ① JSONPath Explorer -->
+        <div class="path-section">
+            <div class="path-section-header">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)"
+                     stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span class="path-panel-title">JSONPath Explorer</span>
+                <span class="path-panel-sub">Jayway · REST Assured compatible</span>
+            </div>
+            <div class="path-section-body">
+                <div class="path-input-row">
+                    <input class="path-input" id="pathInput" type="text"
+                           placeholder="$.testSuite.tests[0].status  — click a value below or type a path"
+                           spellcheck="false" oninput="evaluatePath()"/>
+                    <button class="btn btn-outline" onclick="clearPath()" style="white-space:nowrap;flex-shrink:0;"
+                            title="Clear path">✕
+                    </button>
+                    <button class="btn btn-primary" onclick="copyPath()" style="white-space:nowrap;flex-shrink:0;">Copy
+                        path
+                    </button>
+                </div>
+                <div id="pathResult" class="path-result"></div>
+                <div class="path-hint">
+                    Click any value in the editor to populate · or type a path manually &nbsp;·&nbsp;
+                    e.g. <code>$.name</code> &nbsp;<code>$.tests[0].status</code> &nbsp;<code>$.summary.failed</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- ② Editor header -->
+        <div class="card-header">
+            <div class="card-header-left">
+        <span class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusLabel">Ready</span>
+        </span>
+                <span class="status-msg" id="statusMsg"></span>
+            </div>
+            <div class="card-actions">
+                <button class="icon-btn edit-toggle" id="editToggle" onclick="switchToEdit()">✎ Edit</button>
+                <button class="icon-btn" onclick="copyContent()">Copy</button>
+                <button class="icon-btn" onclick="pasteFromClipboard()">Paste</button>
+            </div>
+        </div>
+
+        <!-- ③ Editor -->
+        <div class="editor-wrap" id="editorWrap">
+            <div class="editor-highlight" id="highlight"></div>
+            <textarea id="editor" spellcheck="false" placeholder='Paste your JSON here — it will format automatically...
+
+{
+  "example": "value"
+}'></textarea>
+        </div>
+
+        <!-- ④ Stats -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat">Keys <span class="stat-val" id="sKeys">—</span></div>
+            <div class="stat">Depth <span class="stat-val" id="sDepth">—</span></div>
+            <div class="stat">Arrays <span class="stat-val" id="sArrays">—</span></div>
+            <div class="stat">Size <span class="stat-val" id="sSize">—</span></div>
+            <div style="margin-left:auto;font-size:11px;color:var(--text-light);">Click any value to get its path</div>
+        </div>
+
+    </div>
+
+    <div class="tool-footer">
+        <a href="https://testleft.co.uk" class="site-logo" style="font-size:15px;">
+            <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+        </a>
+        <span class="footer-sep">·</span>
+        <span class="footer-note">Free SDET tools · More coming soon</span>
+    </div>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+    const SAMPLE = {
+      "project": {
+        "id": "proj-2024-001",
+        "name": "E-Commerce Platform",
+        "version": "3.2.1",
+        "status": "active",
+        "teams": [
+          {
+            "id": "team-001",
+            "name": "Backend",
+            "lead": "Sarah Chen",
+            "members": [
+              { "id": "u001", "name": "James Kirk", "role": "Senior Dev", "active": true },
+              { "id": "u002", "name": "Priya Patel", "role": "Dev", "active": true },
+              { "id": "u003", "name": "Tom Walsh", "role": "Dev", "active": false }
+            ]
+          },
+          {
+            "id": "team-002",
+            "name": "QA",
+            "lead": "Marcus Johnson",
+            "members": [
+              { "id": "u004", "name": "Aisha Okonkwo", "role": "Senior SDET", "active": true },
+              { "id": "u005", "name": "Leo Fernandez", "role": "SDET", "active": true }
+            ]
+          }
+        ],
+        "testSuites": [
+          {
+            "id": "suite-001",
+            "name": "Checkout API",
+            "environment": "staging",
+            "tags": ["regression", "smoke", "api"],
+            "tests": [
+              {
+                "id": "TC001",
+                "name": "Valid card payment",
+                "status": "pass",
+                "duration": 342,
+                "retries": 0,
+                "steps": [
+                  { "step": 1, "action": "POST /api/payments", "expected": 200, "actual": 200, "passed": true },
+                  { "step": 2, "action": "Verify transaction id", "expected": "not null", "actual": "txn_abc123", "passed": true },
+                  { "step": 3, "action": "Verify balance deducted", "expected": true, "actual": true, "passed": true }
+                ],
+                "assertions": [
+                  { "path": "$.status", "expected": "success", "actual": "success", "passed": true },
+                  { "path": "$.amount", "expected": 99.99, "actual": 99.99, "passed": true }
+                ]
+              },
+              {
+                "id": "TC002",
+                "name": "Expired card",
+                "status": "fail",
+                "duration": 421,
+                "retries": 2,
+                "error": "Expected 422, got 500",
+                "steps": [
+                  { "step": 1, "action": "POST /api/payments", "expected": 422, "actual": 500, "passed": false },
+                  { "step": 2, "action": "Verify error message", "expected": "card_expired", "actual": null, "passed": false }
+                ],
+                "assertions": [
+                  { "path": "$.status", "expected": "error", "actual": null, "passed": false },
+                  { "path": "$.errorCode", "expected": "card_expired", "actual": null, "passed": false }
+                ]
+              },
+              {
+                "id": "TC003",
+                "name": "3DS authentication",
+                "status": "pass",
+                "duration": 890,
+                "retries": 0,
+                "steps": [
+                  { "step": 1, "action": "POST /api/payments", "expected": 202, "actual": 202, "passed": true },
+                  { "step": 2, "action": "Redirect to 3DS", "expected": "redirect_url not null", "actual": "https://3ds.bank.com/verify", "passed": true },
+                  { "step": 3, "action": "Complete 3DS challenge", "expected": 200, "actual": 200, "passed": true },
+                  { "step": 4, "action": "Verify payment confirmed", "expected": "confirmed", "actual": "confirmed", "passed": true }
+                ],
+                "assertions": [
+                  { "path": "$.status", "expected": "confirmed", "actual": "confirmed", "passed": true },
+                  { "path": "$.threeDSResult", "expected": "authenticated", "actual": "authenticated", "passed": true }
+                ]
+              }
+            ],
+            "summary": { "total": 3, "passed": 2, "failed": 1, "skipped": 0 }
+          },
+          {
+            "id": "suite-002",
+            "name": "User Auth",
+            "environment": "staging",
+            "tags": ["regression", "security"],
+            "tests": [
+              {
+                "id": "TC004",
+                "name": "Login valid credentials",
+                "status": "pass",
+                "duration": 210,
+                "retries": 0,
+                "steps": [
+                  { "step": 1, "action": "POST /api/auth/login", "expected": 200, "actual": 200, "passed": true },
+                  { "step": 2, "action": "Verify JWT returned", "expected": "token not null", "actual": "eyJhbGci...", "passed": true }
+                ],
+                "assertions": [
+                  { "path": "$.token", "expected": "not null", "actual": "eyJhbGci...", "passed": true },
+                  { "path": "$.user.role", "expected": "admin", "actual": "admin", "passed": true }
+                ]
+              },
+              {
+                "id": "TC005",
+                "name": "Token expiry",
+                "status": "fail",
+                "duration": 930,
+                "retries": 3,
+                "error": "Timeout after 900ms",
+                "steps": [
+                  { "step": 1, "action": "Wait 901ms", "expected": "token expired", "actual": "timeout", "passed": false }
+                ],
+                "assertions": [
+                  { "path": "$.error", "expected": "token_expired", "actual": null, "passed": false }
+                ]
+              }
+            ],
+            "summary": { "total": 2, "passed": 1, "failed": 1, "skipped": 0 }
+          }
+        ],
+        "environments": [
+          { "name": "dev", "url": "https://dev.example.com", "active": true, "features": ["debug", "mock-payments"] },
+          { "name": "staging", "url": "https://staging.example.com", "active": true, "features": ["mock-payments"] },
+          { "name": "production", "url": "https://example.com", "active": true, "features": [] }
+        ],
+        "config": {
+          "timeout": 5000,
+          "retries": 3,
+          "parallel": true,
+          "reporters": ["html", "json", "slack"],
+          "thresholds": { "passRate": 95, "maxDuration": 1000, "flakyLimit": 2 }
+        },
+        "lastRun": "2024-03-15T09:32:00Z",
+        "flaky": false
+      }
+    };
+
+    const editorEl = document.getElementById('editor');
+    const wrapEl   = document.getElementById('editorWrap');
+
+    // ── Live validation as user types ──────────────────────────────────────────
+    editorEl.addEventListener('input', liveValidate);
+
+    // Debounce timer so we don't reformat on every single keystroke
+    let formatTimer = null;
+
+    function liveValidate() {
+      const val = editorEl.value.trim();
+      if (!val) { setStatus('idle','Ready',''); return; }
+      try {
+        JSON.parse(val);
+        setStatus('valid','Valid JSON','');
+        // Auto-format after a short pause — feels instant on paste, not jarring while typing
+        clearTimeout(formatTimer);
+        formatTimer = setTimeout(() => formatJSON(), 300);
+      } catch(e) {
+        // Still typing — just show invalid status, don't flash an error
+        setStatus('invalid','Invalid JSON', e.message);
+      }
+    }
+
+    function setStatus(state, label, msg) {
+      const pill = document.getElementById('statusPill');
+      document.getElementById('statusLabel').textContent = label;
+      const msgEl = document.getElementById('statusMsg');
+      msgEl.textContent = state === 'invalid' ? msg : '';
+      pill.className = 'status-pill' + (state !== 'idle' ? ' ' + state : '');
+    }
+
+    // ── Format ─────────────────────────────────────────────────────────────────
+    function formatJSON() {
+      const raw = editorEl.value.trim();
+      if (!raw) return;
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch(e) { setStatus('invalid','Invalid JSON', e.message); flashError(e.message); return; }
+
+      const indentVal = document.getElementById('indent').value;
+      const indent = indentVal === 'tab' ? '\t' : parseInt(indentVal);
+
+      // Switch to view mode — show highlighted layer, hide textarea
+      const highlighted = buildHighlight(parsed);
+      const hlEl = document.getElementById('highlight');
+      hlEl.style.whiteSpace = 'pre-wrap';
+      hlEl.style.wordBreak = 'break-word';
+      hlEl.style.fontFamily = 'var(--font-mono)';
+      hlEl.innerHTML = highlighted;
+      wrapEl.classList.add('view-mode');
+      document.getElementById('editToggle').classList.add('visible');
+
+      setStatus('valid','Valid JSON','');
+      showStats(calcStats(parsed, JSON.stringify(parsed, null, indent)));
+      document.getElementById('pathInput').value = '';
+      document.getElementById('pathResult').className = 'path-result';
+      document.querySelectorAll('.jv.selected').forEach(e => e.classList.remove('selected'));
+
+      // Keep raw value in sync for copy/edit
+      editorEl.value = JSON.stringify(parsed, null, indent);
+    }
+
+    function flashError(msg) {
+      const hl = document.getElementById('highlight');
+      hl.innerHTML = `<div class="err-line">✗ Parse Error\n${msg}</div>`;
+      hl.style.color = 'inherit';
+      wrapEl.classList.add('view-mode');
+      document.getElementById('editToggle').classList.add('visible');
+    }
+
+    // ── Minify ─────────────────────────────────────────────────────────────────
+    function minifyJSON() {
+      const raw = editorEl.value.trim();
+      if (!raw) return;
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch(e) { setStatus('invalid','Invalid JSON', e.message); return; }
+      const min = JSON.stringify(parsed);
+      editorEl.value = min;
+      switchToEdit();
+      setStatus('valid','Valid JSON','');
+      showStats(calcStats(parsed, min));
+    }
+
+    // ── Switch back to raw edit mode ───────────────────────────────────────────
+    function switchToEdit() {
+      wrapEl.classList.remove('view-mode');
+      document.getElementById('pathInput').value = '';
+      document.getElementById('pathResult').className = 'path-result';
+      editorEl.focus();
+    }
+
+    // ── Path-aware renderer ───────────────────────────────────────────────────
+    // Strategy: walk the object ONCE to build a flat map of path -> value for
+    // every node (primitives AND objects/arrays). Then render the JSON string,
+    // tagging each key span with the path of its parent value so clicking a key
+    // navigates to that node, and tagging primitive values with their own path.
+
+    let pathMap   = [];   // index -> path, for primitive value tokens
+    let bracketMap = new Map(); // not used in new approach
+    let nodeIndex = {};   // path -> value, for all nodes
+
+    function collectAllNodes(node, path) {
+      nodeIndex[path] = node;
+      if (Array.isArray(node)) {
+        node.forEach((item, i) => collectAllNodes(item, path + '[' + i + ']'));
+      } else if (node !== null && typeof node === 'object') {
+        Object.keys(node).forEach(k => {
+          const seg = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? '.' + k : "['" + k + "']";
+          collectAllNodes(node[k], path + seg);
+        });
+      }
+    }
+
+    function buildHighlight(obj) {
+      pathMap = [];
+      nodeIndex = {};
+      collectAllNodes(obj, '$');
+      walkPrimitives(obj, '$');
+      _nodeId = 0;
+      _primIdx = 0;
+      return _buildNode(obj, '$', 0, true);
+    }
+
+    let _nodeId = 0;
+    let _primIdx = 0;
+
+    function _getIndent(depth) {
+      const v = document.getElementById('indent').value;
+      const unit = v === 'tab' ? '\t' : ' '.repeat(parseInt(v));
+      return unit.repeat(depth);
+    }
+
+    function _buildNode(node, path, depth, isLast) {
+      if (Array.isArray(node)) return _buildArray(node, path, depth, isLast);
+      if (node !== null && typeof node === 'object') return _buildObject(node, path, depth, isLast);
+      return _buildPrimitive(node, path, isLast);
+    }
+
+    function _buildObject(obj, path, depth, isLast) {
+      const keys = Object.keys(obj);
+      const comma = isLast ? '' : ',';
+      const id = 'nd' + (++_nodeId);
+
+      if (keys.length === 0) {
+        return '<span class="jb-punc">{}</span><span class="jb-punc">' + comma + '</span>\n';
+      }
+
+      const preview = keys.slice(0, 3).map(k => escHtml(k)).join(', ') + (keys.length > 3 ? ', \u2026' : '');
+
+      let html = '';
+      html += '<span class="collapse-toggle" onclick="toggleNode(\`' + id + '\`)" title="Collapse">';
+      html += '<span class="collapse-arrow-btn" id="arr-' + id + '">\u25be</span>';
+      html += '<span class="jb-punc">{</span>';
+      html += '</span>';
+      html += '<span class="collapse-preview" id="pre-' + id + '" style="display:none">';
+      html += '<span class="jb-punc">{</span>';
+      html += '<span class="preview-text">' + preview + '</span>';
+      html += '<span class="jb-punc">}' + comma + '</span>';
+      html += '</span>\n';
+      html += '<div class="collapse-body" id="' + id + '">';
+
+      keys.forEach(function(k, i) {
+        const seg = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? '.' + k : "['" + k + "']";
+        const childPath = path + seg;
+        const childIsLast = i === keys.length - 1;
+        html += _getIndent(depth + 1);
+        html += '<span class="jk-label jv" data-bpath="' + escAttr(childPath) + '" onclick="selectBracket(this)">';
+        html += '"' + escHtml(k) + '"';
+        html += '</span>';
+        html += '<span class="jb-punc">: </span>';
+        html += _buildNode(obj[k], childPath, depth + 1, childIsLast);
+      });
+
+      html += _getIndent(depth) + '</span>';
+      html += '<span class="jb-punc">}' + comma + '</span>\n';
+      return html;
+    }
+
+    function _buildArray(arr, path, depth, isLast) {
+      const comma = isLast ? '' : ',';
+      const id = 'nd' + (++_nodeId);
+
+      if (arr.length === 0) {
+        return '<span class="jb-punc">[]' + comma + '</span>\n';
+      }
+
+      let html = '';
+      html += '<span class="collapse-toggle" onclick="toggleNode(\`' + id + '\`)" title="Collapse">';
+      html += '<span class="collapse-arrow-btn" id="arr-' + id + '">\u25be</span>';
+      html += '<span class="jb-punc">[</span>';
+      html += '</span>';
+      html += '<span class="collapse-preview" id="pre-' + id + '" style="display:none">';
+      html += '<span class="jb-punc">[</span>';
+      html += '<span class="preview-text">' + arr.length + ' item' + (arr.length !== 1 ? 's' : '') + '</span>';
+      html += '<span class="jb-punc">]' + comma + '</span>';
+      html += '</span>\n';
+      html += '<div class="collapse-body" id="' + id + '">';
+
+      arr.forEach(function(item, i) {
+        const childPath = path + '[' + i + ']';
+        html += _getIndent(depth + 1);
+        html += _buildNode(item, childPath, depth + 1, i === arr.length - 1);
+      });
+
+      html += '</div>';
+      html += _getIndent(depth) + '<span class="jb-punc">]' + comma + '</span>\n';
+      return html;
+    }
+
+    function _buildPrimitive(val, path, isLast) {
+      const comma = isLast ? '' : ',';
+      let cls, display;
+      if (val === null)              { cls = 'jl'; display = 'null'; }
+      else if (val === true)         { cls = 'jbool'; display = 'true'; }
+      else if (val === false)        { cls = 'jbool'; display = 'false'; }
+      else if (typeof val === 'number') { cls = 'jn'; display = String(val); }
+      else { cls = 'js'; display = '"' + escHtml(String(val)) + '"'; }
+
+      const vidx = _primIdx++;
+      return '<span class="' + cls + ' jv" data-path="' + vidx + '" onclick="selectToken(this)">' + display + '</span>'
+        + (comma ? '<span class="jb-punc">' + comma + '</span>' : '') + '\n';
+    }
+
+    function toggleNode(id) {
+      const body    = document.getElementById(id);
+      const preview = document.getElementById('pre-' + id);
+      const arrow   = document.getElementById('arr-' + id);
+      if (!body) return;
+      const isCollapsed = body.style.display === 'none';
+      body.style.display    = isCollapsed ? 'block' : 'none';
+      if (preview) preview.style.display = isCollapsed ? 'none' : 'inline';
+      if (arrow) { arrow.textContent = isCollapsed ? '\u25be' : '\u25b8'; }
+    }
+
+
+    function walkPrimitives(node, path) {
+      if (Array.isArray(node)) {
+        node.forEach((item, i) => walkPrimitives(item, path + '[' + i + ']'));
+      } else if (node !== null && typeof node === 'object') {
+        Object.keys(node).forEach(k => {
+          const seg = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? '.' + k : "['" + k + "']";
+          walkPrimitives(node[k], path + seg);
+        });
+      } else {
+        pathMap.push(path);
+      }
+    }
+
+    function escAttr(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function selectBracket(el) {
+      document.querySelectorAll('.jv.selected').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      const path = el.getAttribute('data-bpath');
+      document.getElementById('pathInput').value = path;
+      evaluatePath();
+    }
+
+    function selectToken(el) {
+      document.querySelectorAll('.jv.selected').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      const idx = parseInt(el.getAttribute('data-path'), 10);
+      const path = pathMap[idx] !== undefined ? pathMap[idx] : '$';
+      document.getElementById('pathInput').value = path;
+      evaluatePath();
+    }
+
+    // ── JSONPath evaluator (Jayway subset) ─────────────────────────────────────
+    function evaluatePath() {
+      const path = document.getElementById('pathInput').value.trim();
+      const resultEl = document.getElementById('pathResult');
+
+      if (!path) { resultEl.className = 'path-result'; return; }
+
+      // Need parsed JSON to evaluate against
+      let obj;
+      try { obj = JSON.parse(editorEl.value); }
+      catch(e) { showPathResult('error', 'No valid JSON to evaluate against'); return; }
+
+      try {
+        // First try direct nodeIndex lookup (covers objects & arrays too)
+        let result;
+        if (nodeIndex && nodeIndex[path] !== undefined) {
+          result = nodeIndex[path];
+        } else {
+          result = jaywayGet(obj, path);
+        }
+
+        if (result === undefined) {
+          showPathResult('error', 'No match — path not found');
+        } else {
+          const display = typeof result === 'object'
+            ? JSON.stringify(result, null, 2)
+            : String(result);
+          showPathResult('success', display, typeof result === 'object', result);
+        }
+      } catch(e) {
+        showPathResult('error', e.message);
+      }
+    }
+
+    function showPathResult(type, value, isObject, rawResult) {
+      const el = document.getElementById('pathResult');
+      el.className = 'path-result ' + type;
+
+      if (type !== 'success') {
+        el.innerHTML = '<div class="path-result-label">Error</div><span class="path-result-value" style="color:var(--error)">' + escHtml(value) + '</span>';
+        return;
+      }
+
+      // Array — show count + clickable items
+      if (Array.isArray(rawResult)) {
+        const currentPath = document.getElementById('pathInput').value.trim();
+        const items = rawResult.map((item, i) => {
+          const itemPath = currentPath + '[' + i + ']';
+          const typeLabel = Array.isArray(item) ? 'array' : typeof item === 'object' && item !== null ? 'object' : typeof item;
+          // For objects show each key:value pair on its own line; for primitives show value
+          let preview;
+          if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+            preview = Object.entries(item).map(([k, v]) =>
+              '<span class="ai-key">' + escHtml(k) + '</span>'
+              + '<span class="ai-sep">: </span>'
+              + '<span class="ai-val">' + escHtml(JSON.stringify(v)) + '</span>'
+            ).join('<br>');
+          } else if (Array.isArray(item)) {
+            preview = '<span class="ai-val">[ ' + item.length + ' items ]</span>';
+          } else {
+            preview = '<span class="ai-val">' + escHtml(JSON.stringify(item)) + '</span>';
+          }
+          return '<div class="array-item" data-itempath="' + escAttr(itemPath) + '" onclick="selectArrayItem(this)">'
+            + '<span class="array-item-index">[' + i + ']</span>'
+            + '<div class="array-item-body">' + preview + '</div>'
+            + '</div>';
+        }).join('');
+
+        el.innerHTML = '<div class="array-header">'
+          + '<span class="path-result-label">Array</span>'
+          + '<span class="array-count-badge">' + rawResult.length + ' item' + (rawResult.length !== 1 ? 's' : '') + '</span>'
+          + '</div>'
+          + '<div class="array-result"><div class="array-items">' + items + '</div></div>';
+        pathHistory = []; // reset history when a fresh array is shown
+        return;
+      }
+
+      // Object — syntax highlighted
+      if (isObject) {
+        const backBtn = pathHistory.length
+          ? '<button class="back-btn" onclick="goBack()">← Back</button>'
+          : '';
+        el.innerHTML = '<div class="array-header">' + backBtn + '<span class="path-result-label">Object</span></div>'
+          + '<pre class="path-result-json">' + syntaxHighlightResult(value) + '</pre>';
+        return;
+      }
+
+      // Primitive
+      const backBtn2 = pathHistory.length
+        ? '<button class="back-btn" onclick="goBack()">← Back</button>'
+        : '';
+      el.innerHTML = '<div class="array-header">' + backBtn2 + '<span class="path-result-label">Result</span></div>'
+        + '<span class="path-result-value">' + escHtml(value) + '</span>';
+    }
+
+    // Track navigation history for back button
+    let pathHistory = [];
+
+    function selectArrayItem(el) {
+      document.querySelectorAll('.array-item.selected').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      // Save current path to history before navigating
+      const currentPath = document.getElementById('pathInput').value.trim();
+      if (currentPath) pathHistory.push(currentPath);
+      const path = el.getAttribute('data-itempath');
+      document.getElementById('pathInput').value = path;
+      evaluatePath();
+    }
+
+    function goBack() {
+      if (!pathHistory.length) return;
+      const prev = pathHistory.pop();
+      document.getElementById('pathInput').value = prev;
+      evaluatePath();
+    }
+
+    function syntaxHighlightResult(json) {
+      return escHtml(json).replace(
+        /("(?:[^"\\]|\\.)*"\s*:?|\btrue\b|\bfalse\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?)/g,
+        function(m) {
+          if (/^"/.test(m) && /:\s*$/.test(m)) return '<span class="jk">' + m + '</span>';
+          if (/^"/.test(m)) return '<span class="js">' + m + '</span>';
+          if (m === 'true' || m === 'false') return '<span class="jb">' + m + '</span>';
+          if (m === 'null') return '<span class="jl">' + m + '</span>';
+          return '<span class="jn">' + m + '</span>';
+        }
+      );
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Jayway JSONPath evaluator — supports $, dot notation, bracket notation, array indices, wildcards [*]
+    function jaywayGet(obj, path) {
+      if (!path.startsWith('$')) throw new Error('Path must start with $');
+      // Tokenise the path
+      const tokens = tokenisePath(path.slice(1)); // strip leading $
+      return resolvePath(obj, tokens);
+    }
+
+    function tokenisePath(path) {
+      const tokens = [];
+      let i = 0;
+      while (i < path.length) {
+        if (path[i] === '.') {
+          i++;
+          if (path[i] === '.') { i++; tokens.push({ type: 'recursive' }); }
+          // read key
+          let key = '';
+          while (i < path.length && path[i] !== '.' && path[i] !== '[') key += path[i++];
+          if (key === '*') tokens.push({ type: 'wildcard' });
+          else if (key) tokens.push({ type: 'key', value: key });
+        } else if (path[i] === '[') {
+          i++; // skip [
+          let inner = '';
+          while (i < path.length && path[i] !== ']') inner += path[i++];
+          i++; // skip ]
+          inner = inner.trim().replace(/^['"]|['"]$/g, ''); // strip quotes
+          if (inner === '*') tokens.push({ type: 'wildcard' });
+          else if (/^\d+$/.test(inner)) tokens.push({ type: 'index', value: parseInt(inner) });
+          else tokens.push({ type: 'key', value: inner });
+        } else {
+          // bare key (no leading dot, e.g. first segment)
+          let key = '';
+          while (i < path.length && path[i] !== '.' && path[i] !== '[') key += path[i++];
+          if (key) tokens.push({ type: 'key', value: key });
+        }
+      }
+      return tokens;
+    }
+
+    function resolvePath(obj, tokens) {
+      let current = obj;
+      for (const token of tokens) {
+        if (current === null || current === undefined) return undefined;
+        if (token.type === 'key') {
+          current = current[token.value];
+        } else if (token.type === 'index') {
+          if (!Array.isArray(current)) throw new Error('Expected array at index access');
+          current = current[token.value];
+        } else if (token.type === 'wildcard') {
+          if (Array.isArray(current)) return current;
+          if (typeof current === 'object') return Object.values(current);
+        } else if (token.type === 'recursive') {
+          // basic recursive descent — return all matching values
+        }
+      }
+      return current;
+    }
+
+    // ── Stats ──────────────────────────────────────────────────────────────────
+    function calcStats(obj, str) {
+      let keys = 0, arrays = 0, maxDepth = 0;
+      function walk(o, d) {
+        maxDepth = Math.max(maxDepth, d);
+        if (Array.isArray(o)) { arrays++; o.forEach(i => walk(i, d+1)); }
+        else if (o && typeof o === 'object') { Object.keys(o).forEach(k => { keys++; walk(o[k], d+1); }); }
+      }
+      walk(obj, 0);
+      const bytes = new TextEncoder().encode(str).length;
+      return { keys, depth: maxDepth, arrays, size: bytes < 1024 ? bytes+'B' : (bytes/1024).toFixed(1)+'KB' };
+    }
+
+    function showStats(s) {
+      const bar = document.getElementById('statsBar');
+      bar.classList.add('visible');
+      document.getElementById('sKeys').textContent = s.keys;
+      document.getElementById('sDepth').textContent = s.depth;
+      document.getElementById('sArrays').textContent = s.arrays;
+      document.getElementById('sSize').textContent = s.size;
+    }
+
+    // ── Utilities ──────────────────────────────────────────────────────────────
+    function clearAll() {
+      editorEl.value = '';
+      document.getElementById('highlight').innerHTML = '';
+      wrapEl.classList.remove('view-mode');
+      document.getElementById('editToggle').classList.remove('visible');
+      document.getElementById('statsBar').classList.remove('visible');
+      document.getElementById('pathInput').value = '';
+      document.getElementById('pathResult').className = 'path-result';
+      setStatus('idle','Ready','');
+      editorEl.focus();
+    }
+
+    function loadSample() {
+      editorEl.value = JSON.stringify(SAMPLE, null, 2);
+      wrapEl.classList.remove('view-mode');
+      document.getElementById('editToggle').classList.remove('visible');
+      document.getElementById('statsBar').classList.remove('visible');
+      document.getElementById('pathInput').value = '';
+      document.getElementById('pathResult').className = 'path-result';
+      liveValidate();
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const t = await navigator.clipboard.readText();
+        editorEl.value = t;
+        switchToEdit();
+        liveValidate();
+      } catch { editorEl.focus(); }
+    }
+
+    function copyContent() {
+      // In view mode, copy from the textarea value (always kept in sync)
+      // In edit mode, copy from textarea directly
+      const text = editorEl.value;
+      if (!text) return;
+      copyToClipboard(text, 'Copied!');
+    }
+
+    function clearPath() {
+      document.getElementById('pathInput').value = '';
+      document.getElementById('pathResult').className = 'path-result';
+      document.querySelectorAll('.jv.selected').forEach(e => e.classList.remove('selected'));
+    }
+
+    function copyPath() {
+      const path = document.getElementById('pathInput').value.trim();
+      if (!path) return;
+      copyToClipboard(path, 'Path copied!');
+    }
+
+    function copyToClipboard(text, successMsg) {
+      // Try modern clipboard API first, fall back to execCommand
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast(successMsg))
+          .catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch(e) {
+        showToast('Copy failed — select text manually');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+    function toggleSecurityPopup(e) {
+      e.stopPropagation();
+      const popup = document.getElementById('securityPopup');
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      // Position below the button, aligned to left edge
+      popup.style.top = (rect.bottom + 8) + 'px';
+      popup.style.left = Math.min(rect.left, window.innerWidth - 350) + 'px';
+      popup.classList.toggle('open');
+    }
+
+    // Close popup when clicking outside
+    document.addEventListener('click', function(e) {
+      const popup = document.getElementById('securityPopup');
+      if (popup && popup.classList.contains('open')) {
+        popup.classList.remove('open');
+      }
+    });
+
+</script>
+</body>
+</html>
