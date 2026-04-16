@@ -37,7 +37,7 @@ All tools run 100% client-side. No data is ever sent to a server.
 
 ## Deployment
 
-Pushing to `main` automatically deploys all files in `tools/` to `testleft.co.uk/tools/`
+Pushing to `master` automatically deploys all files in `tools/` to `testleft.co.uk/tools/`
 via the GitHub Actions workflow in `.github/workflows/deploy.yml`.
 
 ### Setup
@@ -62,7 +62,7 @@ via the GitHub Actions workflow in `.github/workflows/deploy.yml`.
 
 1. Create `tools/your-tool-name.html`
 2. Follow the existing design pattern (nav, page header, security badge, card, footer)
-3. Push to `main` — GitHub Actions deploys it automatically
+3. Push to `master` — GitHub Actions deploys it automatically
 4. Add a row to the table above
 
 ---

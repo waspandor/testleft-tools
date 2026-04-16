@@ -2,7 +2,7 @@ name: Deploy Tools to Krystal
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'tools/**'
 
