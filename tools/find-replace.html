@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Free online find and replace tool. Search with plain text or regex, preview matches, and replace instantly. 100% client-side — your data never leaves your browser.">
+<meta name="author" content="TestLeft.co.uk">
+<title>Find &amp; Replace — TestLeft.co.uk | Text Search &amp; Replace Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f1f2; --white: #ffffff; --surface2: #f7f8f9; --border: #e2e4e8;
+    --teal: #00b4b4; --teal-dark: #008f8f; --teal-light: #e6f7f7;
+    --navy: #1a2a3a; --text: #1a2a3a; --text-muted: #6b7280; --text-light: #9ca3af;
+    --success: #059669; --success-bg: #ecfdf5; --error: #dc2626; --error-bg: #fef2f2;
+    --added: #f0fdf4; --added-border: #16a34a; --added-text: #15803d;
+    --removed: #fef2f2; --removed-border: #dc2626; --removed-text: #b91c1c;
+    --changed: #fffbeb; --changed-border: #d97706; --changed-text: #92400e;
+    --font: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+  .page-header { background: var(--white); border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .site-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); }
+  .site-logo { font-family: var(--font); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: -0.03em; }
+  .logo-tl { color: var(--navy); } .logo-left { color: var(--teal); }
+  .logo-dot { color: var(--text-muted); font-weight: 500; font-size: 14px; }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
+  .nav-link { font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--teal); }
+  .page-header-inner { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
+  .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .breadcrumb a { color: var(--teal); text-decoration: none; font-weight: 500; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { color: var(--text-light); }
+  .page-title { font-size: 28px; font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+  .page-title span { color: var(--teal); }
+  .page-subtitle { margin-top: 6px; font-size: 14px; color: var(--text-muted); }
+  .security-notice { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--teal-light); border: 1px solid rgba(0,180,180,0.25); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--teal-dark); position: relative; }
+  .info-btn { background: none; border: none; cursor: pointer; color: var(--teal-dark); display: inline-flex; align-items: center; padding: 0 2px; opacity: 0.7; transition: opacity 0.15s; }
+  .info-btn:hover { opacity: 1; }
+  .security-popup { display: none; position: fixed; width: 380px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 9999; overflow: hidden; }
+  .security-popup.open { display: block; }
+  .security-popup-header { background: var(--navy); padding: 12px 16px; display: flex; align-items: center; gap: 8px; color: white; font-size: 12px; font-weight: 600; }
+  .security-popup-header svg { opacity: 0.7; flex-shrink: 0; }
+  .security-popup-header span { flex: 1; }
+  .popup-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; transition: color 0.15s; }
+  .popup-close:hover { color: white; }
+  .security-popup-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+  .security-item { display: flex; gap: 10px; align-items: flex-start; }
+  .security-item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .security-item-title { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .security-item-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  .popup-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--teal-dark); margin: 6px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .tool-footer { margin-top: 32px; padding: 20px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .footer-sep { color: var(--text-light); }
+  .footer-note { font-size: 12px; color: var(--text-light); }
+  .wrapper { max-width: 1200px; margin: 0 auto; padding: 0 32px 48px; }
+  .controls-bar { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; border: 1px solid var(--border); border-bottom: none; padding: 12px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .controls-divider { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+  .btn { font-family: var(--font); font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-sm); border: 1.5px solid transparent; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; line-height: 1; }
+  .btn-primary { background: var(--teal); color: white; border-color: var(--teal); }
+  .btn-primary:hover { background: var(--teal-dark); border-color: var(--teal-dark); box-shadow: 0 2px 8px rgba(0,180,180,0.3); }
+  .btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+  .btn-outline:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border-color: transparent; }
+  .btn-ghost:hover { color: var(--error); background: var(--error-bg); }
+  .sample-btn { font-size: 12px; font-weight: 600; color: var(--teal); background: none; border: none; cursor: pointer; font-family: var(--font); padding: 0 4px; }
+  .sample-btn:hover { text-decoration: underline; }
+  .opt-group { margin-left: auto; display: flex; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .opt-btn { font-family: var(--font); font-size: 11px; font-weight: 600; padding: 6px 11px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .opt-btn:not(:last-child) { border-right: 1px solid var(--border); }
+  .opt-btn.active { background: var(--white); color: var(--teal-dark); }
+  .opt-btn:hover:not(.active) { background: var(--teal-light); color: var(--teal); }
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .section-header { background: var(--navy); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); }
+  .section-sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+  .input-pane { display: flex; flex-direction: column; }
+  .input-pane:first-child { border-right: 1px solid var(--border); }
+  .pane-label { padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .pane-label-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+  .pane-label-text.find-label    { color: var(--changed-text); }
+  .pane-label-text.replace-label { color: var(--added-text); }
+  .pane-actions { display: flex; gap: 5px; flex-shrink: 0; }
+  .pane-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--white); border: 1.5px solid var(--border); border-radius: 5px; padding: 3px 9px; cursor: pointer; transition: all 0.15s; }
+  .pane-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .select-hint { font-size: 10px; font-weight: 600; color: var(--teal-dark); background: var(--teal-light); border: 1px solid rgba(0,180,180,0.3); border-radius: 4px; padding: 2px 8px; opacity: 0; transition: opacity 0.2s; cursor: pointer; white-space: nowrap; }
+  .select-hint.visible { opacity: 1; }
+  .pane-search { padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--white); display: flex; align-items: center; gap: 6px; }
+  .pane-search-input { flex: 1; font-family: var(--font-mono); font-size: 13px; color: var(--text); background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; outline: none; transition: border-color 0.15s, background 0.15s; }
+  .pane-search-input:focus { border-color: var(--teal); background: var(--white); }
+  .pane-search-input::placeholder { color: var(--text-light); }
+  .pane-search-input.has-error { border-color: var(--error); background: var(--error-bg); }
+  .pane-search-clear { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 18px; line-height: 1; padding: 0 2px; transition: color 0.15s; flex-shrink: 0; }
+  .pane-search-clear:hover { color: var(--text); }
+  .pane-editor { position: relative; min-height: 240px; }
+  .pane-textarea { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--white); border: none; padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.65; color: var(--text); resize: none; outline: none; caret-color: var(--teal); }
+  .pane-textarea::placeholder { color: var(--text-light); }
+  .pane-output { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--white); padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.65; color: var(--text); overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
+  .pane-output mark.hl-match    { background: #ffe082; color: var(--navy); border-radius: 2px; padding: 0 1px; }
+  .pane-output mark.hl-replaced { background: #b2f5c8; color: #1a7a3e; font-weight: 600; border-radius: 2px; padding: 0 1px; }
+  .pane-output mark.hl-removed  { background: #ffc9c9; color: var(--removed-text); border-radius: 2px; padding: 0 1px; text-decoration: line-through; }
+  .pane-output mark.hl-active   { background: #f97316; color: white; border-radius: 2px; padding: 0 2px; outline: 2px solid #c2410c; outline-offset: 1px; }
+  .pane-output-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 100%; min-height: 200px; color: var(--text-light); font-family: var(--font); }
+  .pane-output-empty svg { opacity: 0.25; }
+  .pane-output-empty p { font-size: 13px; }
+  .pane-error { border-top: 1px solid rgba(220,38,38,0.15); background: var(--error-bg); padding: 5px 16px; font-size: 11px; font-family: var(--font-mono); color: var(--error); min-height: 22px; line-height: 1.4; display: none; }
+  .pane-error.visible { display: block; }
+  .step-bar { padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: none; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .step-bar.visible { display: flex; }
+  .step-counter { font-size: 12px; font-family: var(--font-mono); color: var(--text-muted); }
+  .step-counter strong { color: var(--navy); font-weight: 700; }
+  .step-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+  .step-btn { font-family: var(--font); font-size: 11px; font-weight: 600; border-radius: 5px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; border: 1.5px solid var(--border); background: var(--white); color: var(--text-muted); }
+  .step-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+  .step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .step-btn-primary { background: var(--teal); color: white; border-color: var(--teal); }
+  .step-btn-primary:hover:not(:disabled) { background: var(--teal-dark); border-color: var(--teal-dark); }
+  .step-nav { display: flex; gap: 4px; }
+  .card-header { padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; min-height: 42px; }
+  .card-header-left { display: flex; align-items: center; gap: 0; }
+  .card-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn { font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--white); border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+  .icon-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); transition: all 0.2s; }
+  .status-pill.valid   { background: var(--success-bg); color: var(--success);  border-color: rgba(5,150,105,0.2); }
+  .status-pill.invalid { background: var(--error-bg);   color: var(--error);    border-color: rgba(220,38,38,0.2); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .status-msg { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-left: 6px; }
+  .stats-bar { padding: 9px 16px; border-bottom: 1px solid var(--border); display: none; gap: 16px; flex-wrap: wrap; background: var(--surface2); align-items: center; }
+  .stats-bar.visible { display: flex; }
+  .stat { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .stat-val { font-weight: 700; font-family: var(--font-mono); }
+  .stat-matches  { color: var(--changed-text); }
+  .stat-replaced { color: var(--added-text); }
+  .stat-chars    { color: var(--teal-dark); }
+  .toast { position: fixed; bottom: 28px; right: 24px; background: var(--navy); color: white; font-family: var(--font); font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: var(--radius-sm); box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(60px); opacity: 0; transition: all 0.22s ease; z-index: 999; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  @media (max-width: 800px) {
+    .wrapper { padding: 0 16px 48px; } .page-title { font-size: 22px; }
+    .input-grid { grid-template-columns: 1fr; }
+    .input-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    .opt-group { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="site-nav">
+    <a href="https://testleft.co.uk" class="site-logo">
+      <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://testleft.co.uk" class="nav-link">&#8592; Blog</a>
+      <a href="https://testleft.co.uk/tools/json-path.html" class="nav-link">JSON Path</a>
+      <a href="https://testleft.co.uk/tools/json-diff.html" class="nav-link">JSON Diff</a>
+      <a href="#" onclick="downloadTool(event)" class="btn btn-outline" style="padding:6px 12px;font-size:12px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </a>
+    </div>
+  </div>
+  <div class="page-header-inner">
+    <div class="breadcrumb">
+      <a href="https://testleft.co.uk">testleft.co.uk</a>
+      <span class="breadcrumb-sep">&#8250;</span>
+      Find &amp; Replace
+    </div>
+    <div class="page-title">Find &amp; <span>Replace</span></div>
+    <div class="page-subtitle">Search with plain text or regex &middot; Preview matches &middot; Replace all or one by one</div>
+    <div class="security-notice">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      100% client-side &middot; your data never leaves this page
+      <button class="info-btn" onclick="toggleSecurityPopup(event)" aria-label="Security information">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </button>
+    </div>
+    <div class="security-popup" id="securityPopup">
+      <div class="security-popup-header">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>About this tool</span>
+        <button class="popup-close" onclick="toggleSecurityPopup(event)">&#10005;</button>
+      </div>
+      <div class="security-popup-body">
+        <div class="popup-section-label">Privacy &amp; security</div>
+        <div class="security-item"><div class="security-item-icon">&#128274;</div>
+          <div><div class="security-item-title">100% client-side</div>
+          <div class="security-item-desc">Runs entirely in your browser. No data sent to any server, nothing stored.</div></div></div>
+        <div class="security-item"><div class="security-item-icon">&#128065;</div>
+          <div><div class="security-item-title">Open to inspect</div>
+          <div class="security-item-desc">Single unobfuscated HTML file — open DevTools to verify.</div></div></div>
+        <div class="popup-section-label">Run offline</div>
+        <div class="security-item"><div class="security-item-icon">&#9992;</div>
+          <div><div class="security-item-title">Download &amp; use locally</div>
+          <div class="security-item-desc">Save the file, double-click to open in any browser. No install, no internet.</div></div></div>
+        <a href="#" onclick="downloadTool(event)" class="btn btn-primary" style="align-self:flex-start;font-size:12px;padding:7px 14px;margin-top:2px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="controls-bar">
+    <button class="btn btn-primary" onclick="doReplace()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      Replace All
+    </button>
+    <button class="btn btn-outline" onclick="doPreview()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Highlight Matches
+    </button>
+    <button class="btn btn-outline" onclick="startStepThrough()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+      Replace One by One
+    </button>
+    <div class="controls-divider"></div>
+    <button class="sample-btn" onclick="loadSample()">Load sample &#8595;</button>
+    <button class="btn btn-ghost" onclick="clearAll()">&#10005; Clear</button>
+    <div class="opt-group">
+      <button class="opt-btn"        id="opt-case"      onclick="toggleOpt('case')"      title="Case sensitive">Aa</button>
+      <button class="opt-btn active" id="opt-regex"     onclick="toggleOpt('regex')"     title="Regular expressions">.*</button>
+      <button class="opt-btn"        id="opt-word"      onclick="toggleOpt('word')"      title="Whole word">\b</button>
+      <button class="opt-btn active" id="opt-multiline" onclick="toggleOpt('multiline')" title="Multiline">^$</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div>
+      <div class="section-header">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span class="section-title">Input</span>
+        <span class="section-sub">Enter your search term and replacement above each panel</span>
+      </div>
+      <div class="input-grid">
+
+        <!-- Left pane: source text + find input -->
+        <div class="input-pane">
+          <div class="pane-label">
+            <span class="pane-label-text find-label">Find</span>
+            <span class="select-hint" id="selectHint" onclick="applySelection()">Use selection &#8593;</span>
+            <div class="pane-actions">
+              <button class="pane-btn" onclick="pasteInput()">Paste</button>
+              <button class="pane-btn" onclick="clearInput()">Clear</button>
+            </div>
+          </div>
+          <div class="pane-search">
+            <input type="text" class="pane-search-input" id="find-input"
+              spellcheck="false" autocomplete="off"
+              placeholder="Search text or regex&#8230;"
+              oninput="onFindChange()" />
+            <button class="pane-search-clear" onclick="clearFind()" title="Clear">&#215;</button>
+          </div>
+          <div class="pane-editor" id="pe-input">
+            <textarea class="pane-textarea" id="input-text" spellcheck="false"
+              placeholder="Paste or type your text here&#8230;"
+              oninput="syncH()"></textarea>
+          </div>
+          <div class="pane-error" id="find-error"></div>
+        </div>
+
+        <!-- Right pane: replace input + output -->
+        <div class="input-pane">
+          <div class="pane-label">
+            <span class="pane-label-text replace-label">Replace With</span>
+            <div class="pane-actions">
+              <button class="pane-btn" onclick="copyResult()">Copy result</button>
+              <button class="pane-btn" onclick="downloadResult()">Download</button>
+            </div>
+          </div>
+          <div class="pane-search">
+            <input type="text" class="pane-search-input" id="replace-input"
+              spellcheck="false" autocomplete="off"
+              placeholder="Replacement (leave blank to delete matches)&#8230;" />
+            <button class="pane-search-clear" onclick="document.getElementById('replace-input').value=''" title="Clear">&#215;</button>
+          </div>
+          <div class="pane-editor" id="pe-output">
+            <div class="pane-output" id="output-view">
+              <div class="pane-output-empty">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 3.5 3.5"/></svg>
+                <p>Output will appear here</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Step-through bar (hidden until activated) -->
+    <div class="step-bar" id="stepBar">
+      <span class="step-counter">Match <strong id="stepCurrent">1</strong> of <strong id="stepTotal">0</strong></span>
+      <div class="step-nav">
+        <button class="step-btn" onclick="stepMove(-1)" title="Previous (Up arrow)">&#8593;</button>
+        <button class="step-btn" onclick="stepMove(1)"  title="Next (Down arrow)">&#8595;</button>
+      </div>
+      <div class="step-divider"></div>
+      <button class="step-btn step-btn-primary" onclick="stepReplace()" title="Replace this match (Enter)">Replace</button>
+      <button class="step-btn" onclick="stepSkip()" title="Skip this match">Skip</button>
+      <div class="step-divider"></div>
+      <button class="step-btn" onclick="endStepThrough()" title="Exit step mode (Escape)">Done</button>
+    </div>
+
+    <!-- Card header: status + actions -->
+    <div class="card-header" id="cardHeader" style="display:none;">
+      <div class="card-header-left">
+        <span class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusLabel">Ready</span>
+        </span>
+        <span class="status-msg" id="statusMsg"></span>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick="copyResult()">Copy result</button>
+        <button class="icon-btn" onclick="downloadResult()">Download .txt</button>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat">Matches <span class="stat-val stat-matches" id="sMatches">&#8212;</span></div>
+      <div class="stat">Replacements <span class="stat-val stat-replaced" id="sReplaced">&#8212;</span></div>
+      <div class="stat">Chars in <span class="stat-val stat-chars" id="sCharsIn">&#8212;</span></div>
+      <div class="stat">Chars out <span class="stat-val stat-chars" id="sCharsOut">&#8212;</span></div>
+    </div>
+
+  </div>
+
+  <div class="tool-footer">
+    <a href="https://testleft.co.uk" class="site-logo" style="font-size:15px;">
+      <span class="logo-tl">Test</span><span class="logo-left">Left</span><span class="logo-dot">.co.uk</span>
+    </a>
+    <span class="footer-sep">&#183;</span>
+    <span class="footer-note">Free SDET tools &middot; More coming soon</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── state ── */
+let plainResult = '';
+let opts = { case: false, regex: true, word: false, multiline: true };
+let lastSelection = '';
+
+/* step-through state */
+let stepMatches  = [];
+let stepIndex    = 0;
+let stepText     = '';
+let stepReplaced = 0;
+
+/* ── option toggles ── */
+function toggleOpt(key) {
+  opts[key] = !opts[key];
+  document.getElementById('opt-' + key).classList.toggle('active', opts[key]);
+}
+
+/* ── build RegExp ── */
+function buildRegex(pattern) {
+  if (!pattern) return null;
+  let flags = 'g';
+  if (!opts.case)     flags += 'i';
+  if (opts.multiline) flags += 'm';
+  let src = opts.regex ? pattern : pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (opts.word)      src = '\\b' + src + '\\b';
+  try {
+    setFindError('');
+    return new RegExp(src, flags);
+  } catch(e) {
+    setFindError('\u2717 ' + e.message);
+    return null;
+  }
+}
+
+function setFindError(msg) {
+  const el  = document.getElementById('find-error');
+  const inp = document.getElementById('find-input');
+  el.textContent = msg;
+  el.classList.toggle('visible', !!msg);
+  inp.classList.toggle('has-error', !!msg);
+}
+
+/* ── HTML escape ── */
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ── segment text by regex matches ── */
+function segment(text, rx) {
+  const segs = [];
+  let last = 0, m;
+  rx.lastIndex = 0;
+  while ((m = rx.exec(text)) !== null) {
+    if (m.index > last) segs.push({ type: 'text', value: text.slice(last, m.index) });
+    segs.push({ type: 'match', value: m[0] });
+    last = m.index + m[0].length;
+    if (m[0].length === 0) rx.lastIndex++;
+  }
+  if (last < text.length) segs.push({ type: 'text', value: text.slice(last) });
+  return segs;
+}
+
+/* ── compute replacement for a single match value ── */
+function computeRep(matchVal, replaceStr) {
+  if (!opts.regex) return replaceStr;
+  const rx = buildRegex(document.getElementById('find-input').value);
+  if (!rx) return replaceStr;
+  const single = new RegExp(rx.source, rx.flags.replace('g', ''));
+  return matchVal.replace(single, replaceStr);
+}
+
+/* ── HIGHLIGHT MATCHES ── */
+function doPreview() {
+  endStepThrough();
+  const text = document.getElementById('input-text').value;
+  const find = document.getElementById('find-input').value;
+  if (!text || !find) { showEmpty(); return; }
+  const rx = buildRegex(find);
+  if (!rx) { showEmpty(); return; }
+
+  const segs  = segment(text, rx);
+  const count = segs.filter(s => s.type === 'match').length;
+  const html  = segs.map(s =>
+    s.type === 'match' ? '<mark class="hl-match">' + esc(s.value) + '</mark>' : esc(s.value)
+  ).join('');
+
+  document.getElementById('output-view').innerHTML = html || emptyHtml();
+  plainResult = text;
+  setStatus('valid', count + ' match' + (count !== 1 ? 'es' : '') + ' found');
+  document.getElementById('cardHeader').style.display = '';
+  showStats(count, '\u2014', text.length, text.length);
+}
+
+/* ── REPLACE ALL ── */
+function doReplace() {
+  endStepThrough();
+  const text    = document.getElementById('input-text').value;
+  const find    = document.getElementById('find-input').value;
+  const replace = document.getElementById('replace-input').value;
+  if (!text) { showEmpty(); return; }
+  if (!find) { doPreview(); return; }
+  const rx = buildRegex(find);
+  if (!rx) { showEmpty(); return; }
+
+  const segs  = segment(text, rx);
+  let   count = 0;
+
+  const htmlParts = segs.map(s => {
+    if (s.type !== 'match') return esc(s.value);
+    count++;
+    const rep = computeRep(s.value, replace);
+    if (rep === '') return '<mark class="hl-removed" title="removed: ' + esc(s.value) + '">' + esc(s.value) + '</mark>';
+    return '<mark class="hl-replaced" title="was: ' + esc(s.value) + '">' + esc(rep) + '</mark>';
+  });
+
+  plainResult = segs.map(s => s.type !== 'match' ? s.value : computeRep(s.value, replace)).join('');
+
+  document.getElementById('output-view').innerHTML = htmlParts.join('') || emptyHtml();
+  const msg = count === 0 ? 'No matches \u2014 text unchanged' : count + ' replacement' + (count !== 1 ? 's' : '') + ' made';
+  setStatus('valid', msg);
+  document.getElementById('cardHeader').style.display = '';
+  showStats(count, count, text.length, plainResult.length);
+}
+
+/* ── STEP-THROUGH: start ── */
+function startStepThrough() {
+  const text = document.getElementById('input-text').value;
+  const find = document.getElementById('find-input').value;
+  if (!text || !find) { showToast('Enter text and a search term first'); return; }
+  const rx = buildRegex(find);
+  if (!rx) return;
+
+  stepMatches = [];
+  let m;
+  rx.lastIndex = 0;
+  while ((m = rx.exec(text)) !== null) {
+    stepMatches.push({ start: m.index, end: m.index + m[0].length, value: m[0] });
+    if (m[0].length === 0) rx.lastIndex++;
+  }
+  if (stepMatches.length === 0) { showToast('No matches found'); return; }
+
+  stepText     = text;
+  stepIndex    = 0;
+  stepReplaced = 0;
+  document.getElementById('stepBar').classList.add('visible');
+  renderStepView();
+}
+
+/* ── STEP-THROUGH: render current match ── */
+function renderStepView() {
+  if (stepMatches.length === 0) { endStepThrough(); return; }
+
+  document.getElementById('stepCurrent').textContent = stepIndex + 1;
+  document.getElementById('stepTotal').textContent   = stepMatches.length;
+
+  let html = '';
+  let last = 0;
+  stepMatches.forEach(function(m, i) {
+    html += esc(stepText.slice(last, m.start));
+    if (i === stepIndex) {
+      html += '<mark class="hl-active" id="activeMatch">' + esc(m.value) + '</mark>';
+    } else {
+      html += '<mark class="hl-match">' + esc(m.value) + '</mark>';
+    }
+    last = m.end;
+  });
+  html += esc(stepText.slice(last));
+
+  const view = document.getElementById('output-view');
+  view.innerHTML = html;
+
+  const el = document.getElementById('activeMatch');
+  if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  setStatus('valid', 'Match ' + (stepIndex + 1) + ' of ' + stepMatches.length + ' \u2014 use Replace or Skip');
+  document.getElementById('cardHeader').style.display = '';
+}
+
+/* ── STEP-THROUGH: navigate ── */
+function stepMove(dir) {
+  if (stepMatches.length === 0) return;
+  stepIndex = (stepIndex + dir + stepMatches.length) % stepMatches.length;
+  renderStepView();
+}
+
+/* ── STEP-THROUGH: replace current match ── */
+function stepReplace() {
+  if (stepMatches.length === 0) return;
+  const replace = document.getElementById('replace-input').value;
+  const m       = stepMatches[stepIndex];
+  const rep     = computeRep(m.value, replace);
+
+  stepText = stepText.slice(0, m.start) + rep + stepText.slice(m.end);
+  stepReplaced++;
+
+  const delta = rep.length - m.value.length;
+  stepMatches.splice(stepIndex, 1);
+  for (let i = stepIndex; i < stepMatches.length; i++) {
+    stepMatches[i].start += delta;
+    stepMatches[i].end   += delta;
+  }
+  if (stepIndex >= stepMatches.length) stepIndex = Math.max(0, stepMatches.length - 1);
+
+  if (stepMatches.length === 0) {
+    plainResult = stepText;
+    document.getElementById('input-text').value = stepText;
+    syncH();
+    endStepThrough();
+    doPreview();
+    showToast('All ' + stepReplaced + ' match' + (stepReplaced !== 1 ? 'es' : '') + ' replaced');
+    return;
+  }
+  renderStepView();
+}
+
+/* ── STEP-THROUGH: skip current match ── */
+function stepSkip() {
+  if (stepMatches.length === 0) return;
+  stepIndex = (stepIndex + 1) % stepMatches.length;
+  renderStepView();
+}
+
+/* ── STEP-THROUGH: end ── */
+function endStepThrough() {
+  stepMatches  = [];
+  stepIndex    = 0;
+  stepText     = '';
+  stepReplaced = 0;
+  document.getElementById('stepBar').classList.remove('visible');
+}
+
+/* ── ui helpers ── */
+function showEmpty() {
+  endStepThrough();
+  document.getElementById('output-view').innerHTML = emptyHtml();
+  plainResult = '';
+  document.getElementById('cardHeader').style.display = 'none';
+  document.getElementById('statsBar').classList.remove('visible');
+}
+
+function emptyHtml() {
+  return '<div class="pane-output-empty"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 3.5 3.5"/></svg><p>Output will appear here</p></div>';
+}
+
+function setStatus(type, msg) {
+  const pill = document.getElementById('statusPill');
+  pill.className = 'status-pill' + (type === 'valid' ? ' valid' : type === 'invalid' ? ' invalid' : '');
+  document.getElementById('statusLabel').textContent = type === 'valid' ? 'Done' : type === 'invalid' ? 'Error' : 'Ready';
+  document.getElementById('statusMsg').textContent   = msg || '';
+}
+
+function showStats(matches, replaced, charsIn, charsOut) {
+  document.getElementById('statsBar').classList.add('visible');
+  document.getElementById('sMatches').textContent  = matches;
+  document.getElementById('sReplaced').textContent = replaced;
+  document.getElementById('sCharsIn').textContent  = Number(charsIn).toLocaleString();
+  document.getElementById('sCharsOut').textContent = Number(charsOut).toLocaleString();
+}
+
+/* ── selection → find box ── */
+var inputTA = document.getElementById('input-text');
+var hintEl  = document.getElementById('selectHint');
+
+function onTextSelection() {
+  var sel = inputTA.value.substring(inputTA.selectionStart, inputTA.selectionEnd);
+  if (sel && sel.length > 0 && sel.length <= 300) {
+    lastSelection = sel;
+    hintEl.classList.add('visible');
+  } else {
+    hintEl.classList.remove('visible');
+  }
+}
+
+function applySelection() {
+  if (!lastSelection) return;
+  // escape for regex mode if enabled
+  var escaped = opts.regex
+    ? lastSelection.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    : lastSelection;
+  document.getElementById('find-input').value = escaped;
+  document.getElementById('replace-input').value = lastSelection;
+  hintEl.classList.remove('visible');
+  lastSelection = '';
+  onFindChange();
+  doPreview();
+  var ri = document.getElementById('replace-input');
+  ri.focus();
+  ri.select();
+}
+
+inputTA.addEventListener('mouseup', onTextSelection);
+inputTA.addEventListener('keyup',   onTextSelection);
+
+/* ── controls ── */
+function onFindChange() {
+  if (!document.getElementById('find-input').value) { setFindError(''); showEmpty(); }
+}
+
+function clearFind() {
+  document.getElementById('find-input').value = '';
+  setFindError('');
+  showEmpty();
+}
+
+function clearInput() {
+  document.getElementById('input-text').value = '';
+  syncH();
+  showEmpty();
+}
+
+async function pasteInput() {
+  try {
+    document.getElementById('input-text').value = await navigator.clipboard.readText();
+    syncH();
+  } catch(e) {
+    document.getElementById('input-text').focus();
+  }
+}
+
+function clearAll() {
+  document.getElementById('input-text').value    = '';
+  document.getElementById('find-input').value    = '';
+  document.getElementById('replace-input').value = '';
+  setFindError('');
+  showEmpty();
+  syncH();
+}
+
+function loadSample() {
+  document.getElementById('input-text').value =
+'TestLeft SDET Tools \u2014 Release Notes\n\nVersion 1.2.0 (2024-01-15)\n- Added JSON Diff tool at testleft.co.uk/tools/\n- Fixed bug in JSON Utility path explorer\n- Updated navbar to include Tools dropdown\n\nVersion 1.1.0 (2023-11-20)\n- Launched JSON Utility tool\n- All tools are 100% client-side\n- testleft.co.uk tools are free to use and download';
+  document.getElementById('find-input').value    = 'testleft.co.uk';
+  document.getElementById('replace-input').value = 'testleft.co.uk/tools';
+  // turn off regex for the sample so the dots aren't treated as wildcards
+  if (opts.regex) toggleOpt('regex');
+  setFindError('');
+  syncH();
+  doPreview();
+}
+
+function copyResult() {
+  if (!plainResult) return;
+  copyToClipboard(plainResult, 'Result copied!');
+}
+
+function downloadResult() {
+  if (!plainResult) return;
+  var blob = new Blob([plainResult], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'result.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadTool(e) {
+  e.preventDefault();
+  var a    = document.createElement('a');
+  a.href     = 'https://testleft.co.uk/tools/find-replace.html';
+  a.download = 'testLeftFindReplace.html';
+  a.click();
+}
+
+/* ── clipboard + toast ── */
+function copyToClipboard(text, msg) {
+  var done = function() { showToast(msg || 'Copied!'); };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(function() { fb(text, done); });
+  } else {
+    fb(text, done);
+  }
+}
+function fb(text, cb) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+/* ── security popup ── */
+function toggleSecurityPopup(e) {
+  e.stopPropagation();
+  var popup = document.getElementById('securityPopup');
+  var rect  = e.currentTarget.getBoundingClientRect();
+  popup.style.top  = (rect.bottom + 8) + 'px';
+  popup.style.left = Math.min(rect.left, window.innerWidth - 390) + 'px';
+  popup.classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  var p = document.getElementById('securityPopup');
+  if (p && p.classList.contains('open')) p.classList.remove('open');
+});
+
+/* ── sync pane heights ── */
+function syncH() {
+  var ta = document.getElementById('input-text');
+  var pa = document.getElementById('pe-input');
+  var pb = document.getElementById('pe-output');
+  ta.style.height = 'auto';
+  var h = Math.max(240, ta.scrollHeight);
+  pa.style.height = h + 'px';
+  pb.style.height = h + 'px';
+  ta.style.height = '100%';
+}
+document.getElementById('input-text').addEventListener('input', syncH);
+syncH();
+
+/* ── keyboard shortcuts ── */
+document.addEventListener('keydown', function(e) {
+  var inStep = document.getElementById('stepBar').classList.contains('visible');
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { doReplace(); return; }
+  if (inStep) {
+    if (e.key === 'ArrowDown')  { e.preventDefault(); stepMove(1);     return; }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); stepMove(-1);    return; }
+    if (e.key === 'Enter')      { e.preventDefault(); stepReplace();   return; }
+    if (e.key === 'Escape')     { endStepThrough();                    return; }
+  }
+});
+</script>
+</body>
+</html>
