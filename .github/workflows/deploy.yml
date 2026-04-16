@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           local-dir: ./tools/
-          server-dir: /home/leftcouk/public_html/tools/
+          server-dir: ./
           exclude: |
             **/.git*
             **/.git*/**
