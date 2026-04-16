@@ -1,0 +1,32 @@
+name: Deploy Tools to Krystal
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tools/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to testleft.co.uk/tools
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ftp.testleft.co.uk
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: ./tools/
+          server-dir: /public_html/tools/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/README.md
+            **/.github/**
+            **/.idea/**
+          log-level: verbose

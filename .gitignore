@@ -1,0 +1,11 @@
+# IntelliJ
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
